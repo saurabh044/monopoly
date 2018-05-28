@@ -75,7 +75,7 @@ class Player(object):
                         self.logObj.printer("There is already a hotel on %s. No more property can be added." % assetname)
                         return False
                 else:
-                    self.logObj.printer("You can't raise any building on %s till all the site of %s color have %d buildings"
+                    self.logObj.printer("You can not raise any building on %s till all the site of %s color have %d buildings"
                                         % (self.asset_list[asset_index].get_name(),
                                            self.asset_list[asset_index].get_group_color_name(), self.asset_list[asset_index].get_property_count()))
             else:
