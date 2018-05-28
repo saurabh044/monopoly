@@ -87,7 +87,7 @@ if optionRecv != 4:
                         else:
                             p.printer("Player-%d is not interested in this property." % playerTurn)
                     else:
-                        p.printer("Player-%d doesn't have sufficient cash to buy this property." % playerTurn)
+                        p.printer("Player-%d doesn't have enough cash to buy this property." % playerTurn)
                 elif ownerID == playerTurn:
                     p.printer("You reached on your own property.")
                     pass
@@ -121,7 +121,7 @@ if optionRecv != 4:
                         pass
                 GameController.move_turnHolderPlayerID()
             elif GameController.get_game_state() == -1:
-                p.printer("Game Finished and the winner is %s.\n" % GameController.get_winner_name())
+                p.printer("Game Finished and the winner is %s!.\n" % GameController.get_winner_name())
                 optionGameRecv = 2
             elif GameController.get_game_state() == -2:
                 p.printer("Game drawn due to bank ran out of cash after %d chances.\n" % chanceCount)
