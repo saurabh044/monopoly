@@ -1,15 +1,15 @@
 from Printer import Printer
 
-
 class Bank(object):
 
     def __init__(self, banker_name, bank_id=5):
         self.banker_name = banker_name
-        self.initial_money = 0
+        self.initial_money = 0        
         self.bank_id = bank_id
         self.balance = 0
         self.asset_list = []
         self.mortgage_ownership = []
+        
         self.transaction_statement = Printer()
         self.asset_group_counter = {1: 0, 2: 0, 3: 0, 4: 0}
         self.transaction_statement.set_log_file_name("./game_logs/bank_transactions_statement.txt")
@@ -69,8 +69,8 @@ class Bank(object):
 
     def group_wise_asset_list(self):
         redProperty = ""
-        greenProperty = ""
-        blueProperty = ""
+        greenProperty = ""  
+        blueProperty = ""   
         yellowProperty = ""
         utilityProperty = ""
         out = ""
@@ -111,8 +111,3 @@ class Bank(object):
         out = "R:%d, G:%d, B:%d, Y:%d ##" % (self.asset_group_counter[1], self.asset_group_counter[2],
                                             self.asset_group_counter[3], self.asset_group_counter[4]) + out
         return out
-
-
-
-
-
