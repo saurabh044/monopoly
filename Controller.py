@@ -84,7 +84,7 @@ class Controller(object):
 
     def add_countries_in_game(self):
         # key value array of country [boardPosition, buyValue, mortgageValue, colorGroup, basicRent, property_price, property_rent]
-        country_list = {"England":   [ 2, 2500, 3500, 1, 700, 7000, 1700],
+        country_list = {"England":   [ 2, 7000, 3500, 1, 700, 7000, 1700],
                         "Iraq":      [ 3, 5000, 2500, 2, 500, 5000, 1500],
                         "France":    [ 6, 2500, 1250, 1, 300, 2500, 1300],
                         "Iran":      [ 7, 2500, 1250, 2, 300, 2500, 1300],
@@ -105,7 +105,7 @@ class Controller(object):
                         "Malaysia":  [35, 1500,  800, 2, 200, 1500, 1200],
                         "Singapore": [36, 3000, 1500, 3, 300, 3000, 1300]
                         }
-        # key value array of Utility [boardPosition, buyValue, mortgageValue]
+        # key value array of Utility [boardPosition, buyValue, mortgageValue, rent, pair_rent]
         utility_list = {"Waterways": [4, 9500, 2000, 1400, 2200],
                         "Satellite": [8, 2000, 1250, 500, 1000],
                         "Airways": [13, 10500, 5500, 1500, 2500],
