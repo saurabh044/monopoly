@@ -34,17 +34,14 @@ if optionRecv != 4:
     PlayerBuyMenu = MenuBox("Buy Menu", logPath)
     PlayerBuyMenu.addOption("Want to buy")
 
-    optionGameRecv = 0
-    chanceCount = 0
-    while optionGameRecv != 2:
-        playerTurn = GameController.get_turnHolderPlayerID()
-        GameController.set_game_state(1)
+    optionGameRecv = GameController.state
+    chanceCount = 0    
+    while optionGameRecv:
         GameController.display_board()
         GameController.print_all_player_assets_table()
         chanceCount += 1
-        p.printer("Chance #%d" % chanceCount)
-        p.printer("Player %s, your chance" % GameController.get_player_name_by_its_ID(playerTurn))
-        optionGameRecv = gamePlayMenu.auto_runMenu(1)  # This auto_runMenu statement is for simulation purpose.
+        GameController.next_move(chanceCount)
+#        optionGameRecv = gamePlayMenu.auto_runMenu(1)  # This auto_runMenu statement is for simulation purpose.
         if optionGameRecv == 1:
             dice_out = Dice1.throw_dice()
             p.printer("Dice outcome = %d" % dice_out)

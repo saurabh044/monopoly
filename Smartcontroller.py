@@ -1,5 +1,9 @@
 from MenuBox import MenuBox
 from MenuBox2 import MenuBox2
+from Banksmart import Banksmart
+from Smartplayer import Smartplayer
+from Asset import Country 
+from Asset import Utility
 import re
 from Printer import Printer
 import random
@@ -35,6 +39,21 @@ utility_list = {"Waterways": [4, 9500, 2000, 1400, 2200, 1],
                 "Petroleum": [32, 5500, 1300, 500, 1000, 3],
                 "Railways": [34, 9500, 5000, 1500, 2500, 2]
                 }
+
+board_display_data = ["Start", "England R-2500", "Iraq G-5000", 
+                      "Waterways U-9500", "UNO",
+                      "France R-2500", "Iran G-2500", "Satellite U-2000",
+                      "Egypt G-3200", "Resort", "Canada Y-4000", 
+                      "Germany R-3500", "Airways U-10500", "Custom Duty",
+                      "Swiss R-3500", "Brazil Y-2500", "Chance",
+                      "Italy R-3500", "Party House", "Japan B-2500",
+                      "USA Y-8500", "Travelling Duty", "Roadways U-3500",
+                      "Mexico Y-4000", "Hongkong B-2000", "UNO", 
+                      "Australia Y-3300", "Jail", "India B-5500", "Chance", 
+                      "SaudiArab G-5500", "Petroleum U-5500", "China B-4500", 
+                      "Railways U-9500", "Malaysia G-1500", 
+                      "Singapore B-3000"]
+
         
 class Dice(object):
 
@@ -43,76 +62,8 @@ class Dice(object):
 
     def throw_dice(self):
         out = random.randint(2, 12)
-        return out
-    
-    
-class Asset(object):
-    
-    def __init__(self, board_loc, name, buy_price, mortgage_value, rent):
-        self.board_loc = board_loc
-        self.name = name
-        self.buy_price = buy_price
-        self.mortgage_val = mortgage_value
-        self.rent = rent
-        self.owner = 0
+        return out  
         
-    
-class Country(Asset):
-    
-    def __init__(self, board_loc, name, buy_price, mortgage_value, rent, prop_price, prop_rent, grp):
-        super(Country, self).__init__(board_loc, name, buy_price, mortgage_value, rent)
-        self.prop_price = prop_price
-        self.prop_rent = prop_rent
-        self.prop_count = 0
-        self.current_rent = self.rent
-        self.color_grp = grp
-    
-    def issite(self):
-        return True
-    
-    def isutil(self):
-        return False
-    
-    @property
-    def prop_count(self):
-        return self._prop_count
-    
-    @prop_count.setter
-    def prop_count(self, value):
-        if 0 <= value <= 4:
-            self._prop_count = value
-            if 1 <= value <= 3:
-                self.current_rent = self.prop_rent * value
-            elif value == 4:
-                self.current_rent = self.prop_rent * 3 + 1000
-            else:
-                self.current_rent = self.rent
-        else:
-            raise ValueError
-        
-    def get_name_with_prop_flag(self):
-        if 1 <= self.prop_count <= 3:
-            prefix = "(h" + str(self.prop_counter) + ")"
-        elif self.prop_count == 4:
-            prefix = "(ht)"
-        else:
-            prefix = ""
-        return self.name + prefix
-            
-        
-class Utility(Asset):
-    def __init__(self, board_loc, name, buy_price, mortgage_value, rent, pair_rent, grp):
-        super(Utility, self).__init__(board_loc, name, buy_price, mortgage_value, rent)
-        self.pair_rent = pair_rent  
-        self.current_rent = self.rent
-        self.pair_grp = grp
-        
-    def issite(self):
-        return False
-    
-    def isutil(self):
-        return True
-    
          
 class Transaction(object):
    
@@ -123,189 +74,27 @@ class Transaction(object):
         self.detail = detail
         self.msg = msg  
 
-class Account(object):
-    
-    def __init__(self, id, balance=0):
-        self.id = id 
-        self.balance = balance
-        self.transaction_statement = Printer()
-        
-    def deposit(self, amount):
-        self.balance += amount
-        
-    def withdraw(self, amount):
-        self.balance -= amount
-    
-    def isenoughbalance(self, amount):
-        if self.balance >= amount:
-            return True
-        return False     
-    
-    @property
-    def id(self):
-        if self._id == 0:
-            return "Bank"
-        else:
-            return 'Player-%d' % self._id
-        
-    @id.setter
-    def id(self, value):
-        self._id = value
-    
-    def set_statement_filename(self, fname):
-        self.transaction_statement.set_log_file_name(fname)
-        self.transaction_statement.file_only_printer("{: >60} {: >8} {: >8} {: >8}".format("Transaction Details",
-                                                                                           "Debit", "Credit", "Balance"))
-           
-
-class Banksmart(object):
-    
-    def __init__(self, id):
-        self.id = id
-        self.asset_list = []
-        self.accounts = [Account(0)]
-        self.accounts[0].set_statement_filename("./business_game_logs/Bank_account_statement.txt")
-       
-    def add_players_accounts(self, player_count):
-        for i in range(player_count):
-            account_var = Account(i+1)
-            account_var.set_statement_filename("./business_game_logs/Player-%d_account_statement.txt" % (i+1))
-            self.accounts.append(account_var) 
-            
-    def get_players_balance(self, player_id):
-        return self.accounts[player_id].balance
-    
-    def get_players_asset_value(self, player_id):
-        val = 0
-        for i in self.asset_list:
-            if i.owner == player_id:
-                val += i.buy_price
-        return val
-                
-    def group_wise_asset_list(self, player_id):
-        redProperty = ""
-        greenProperty = ""
-        blueProperty = ""
-        yellowProperty = ""
-        utilityProperty = ""
-        rc, gc, bc, yc, uc = 0, 0, 0, 0, 0
-        out = ""
-        for i in self.asset_list:
-            if i.owner == player_id:
-                if i.issite():
-                    if i.color_grp == 1:
-                        redProperty += i.get_name_with_prop_flag() + ","
-                        rc += 1
-                    elif i.color_grp == 2:
-                        greenProperty += i.get_name_with_prop_flag() + ","
-                        gc += 1
-                    elif i.color_grp == 3:
-                        blueProperty += i.get_name_with_prop_flag() + ","
-                        bc += 1
-                    else:
-                        yellowProperty += i.get_name_with_prop_flag() + ","
-                        yc += 1
-                else:
-                    utilityProperty += i.name + ","
-                    uc += 1
-            if i.owner == player_id + 10:
-                if i.isSite():
-                    if i.color_grp == 1:
-                        redProperty += i.get_name_with_prop_flag() + "(m),"
-                        rc += 1
-                    elif i.color_grp == 2:
-                        greenProperty += i.get_name_with_prop_flag() + "(m),"
-                        gc += 1
-                    elif i.color_grp == 3:
-                        blueProperty += i.get_name_with_prop_flag() + "(m),"
-                        bc += 1
-                    else:
-                        yellowProperty += i.get_name_with_prop_flag() + "(m),"
-                        yc += 1
-                else:
-                    utilityProperty += i.name + "(m),"
-                    uc += 1
-        if redProperty != "":
-            out += "R:%s" % redProperty
-        if greenProperty != "":
-            out += "G:%s" % greenProperty
-        if blueProperty != "":
-            out += "B:%s" % blueProperty
-        if yellowProperty != "":
-            out += "Y:%s" % yellowProperty
-        if utilityProperty != "":
-            out += "U:%s" % utilityProperty
-        out = "R:%d, G:%d, B:%d, Y:%d, U:%d ##" % (rc, gc, bc, yc, uc) + out
-        return out   
-    
-    # 1. Rent payment ()
-    # 2. Country Purchase ()
-    # 3. Utility Purchase ()
-    # 4. UNO Payment (diceVal)
-    # 5. Chance Payment (diceVal)
-    # 6. Jail Payment ()
-    # 7. Property Purchase (board_location)
-    # 8. Country Mortgage (board_location)
-    # 9. Utility Mortgage (board_location)
-    # 10. Property Sell (board_location)
-    # 11. General Payment (amount)
-    # 12. Bank cash reserve add (amount)
-    
-    def process_request(self, transaction):
-        payee_acc_id = transaction.payee
-        recep_acc_id = transaction.recipient 
-        data = transaction.detail
-        if transaction.type == 11:
-            if self.accounts[payee_acc_id].isenoughbalance(data):
-                self.accounts[payee_acc_id].withdraw(data)
-                self.accounts[recep_acc_id].deposit(data)
-                msg = transaction.msg + ' to ' + self.accounts[recep_acc_id].id
-                statement = "{: >60} {: >8} {: >8} {: >8}".format(msg, data, "", self.accounts[payee_acc_id].balance)
-                self.accounts[payee_acc_id].transaction_statement.file_only_printer(statement)
-                msg = transaction.msg + ' from ' + self.accounts[payee_acc_id].id
-                statement = "{: >60} {: >8} {: >8} {: >8}".format(msg, "", data, self.accounts[recep_acc_id].balance)  
-                self.accounts[recep_acc_id].transaction_statement.file_only_printer(statement)
-                return True
-            return False                
-        if transaction.type == 12:
-            self.accounts[recep_acc_id].deposit(data)
-            msg = transaction.msg + ' from Game'
-            statement = "{: >60} {: >8} {: >8} {: >8}".format(transaction.msg, "", data, self.accounts[recep_acc_id].balance)    
-            self.accounts[recep_acc_id].transaction_statement.file_only_printer(statement)
-            return True
- 
-        
-class Smartplayer(object):
-    
-    def __init__(self, id, name, logPath, active=True):
-        self.id = id
-        self.name = name
-        self.active = active
-        self.logObj = Printer(logPath)
-        self.board_pos = 1
-        self.transaction_statement = Printer()
-        
-    def set_statement_filename(self, fname):
-        self.transaction_statement.set_log_file_name(fname)
-        self.transaction_statement.file_only_printer("{: >60} {: >8} {: >8} {: >8}".format("Transaction Details",
-                                                                                           "Debit", "Credit", "Balance"))
-    
-    
-    def move(self, value):
-        self.board_pos += value
-        if self.board_pos > 36:
-            self.board_pos -= 36
-            
-    def deactivate(self):
-        self.active = False
-    
     
 class Smartcontroller(object):
 
     def __init__(self, player_count, log_path):
+        self.logPath = log_path
+        self.gamePlayMenu = MenuBox("Play Game", self.logPath)
+        self.gamePlayMenu.addOption("Roll Dice")
+
+        self.PlayerMenu = MenuBox("Player Menu", self.logPath)
+        self.PlayerMenu.addOption("Continue")
+        self.PlayerMenu.addOption("Redeem")
+        self.PlayerMenu.addOption("Build Property")
+        self.PlayerMenu.addOption("Sell Property")
+        self.PlayerMenu.addOption("Buy Other Player Country")
+        self.PlayerMenu.addOption("Mortgage")
+
+        self.PlayerBuyMenu = MenuBox("Buy Menu", self.logPath)
+        self.PlayerBuyMenu.addOption("Want to buy")
+        
         self.logObj = Printer(log_path)
         self.player_count = player_count
-        self.logPath = log_path
         self.players = []
         self.dice = Dice()
         for i in range(self.player_count):
@@ -315,7 +104,7 @@ class Smartcontroller(object):
             self.players[i].set_statement_filename("./business_game_logs/Player-%d_account_statement.txt" % (i+1))
         self.turnHolderPlayerID = 0
         self.BoardData = {}
-        self.gameState = 0
+        self.state = True
         for i in range(36):
             self.BoardData[i+1] = []
         self.country_name_list = ["England", "Iraq", "France", "Iran", "Egypt", "Canada", "Germany", "Swiss", "Brazil",
@@ -337,17 +126,6 @@ class Smartcontroller(object):
                                        24: "", 25: "", 27: "", 29: "",
                                        31: "", 32: "", 33: "", 34: "",
                                        35: "", 36: ""}
-        self.board_display_data = ["Start", "England R-2500", "Iraq G-5000", "Waterways U-9500", "UNO",
-                                   "France R-2500", "Iran G-2500", "Satellite U-2000", "Egypt G-3200",
-                                   "Resort", "Canada Y-4000", "Germany R-3500", "Airways U-10500",
-                                   "Custom Duty", "Swiss R-3500", "Brazil Y-2500",
-                                   "Chance", "Italy R-3500", "Party House", "Japan B-2500",
-                                   "USA Y-8500", "Travelling Duty", "Roadways U-3500", "Mexico Y-4000",
-                                   "Hongkong B-2000", "UNO", "Australia Y-3300", "Jail",
-                                   "India B-5500", "Chance", "SaudiArab G-5500", "Petroleum U-5500",
-                                   "China B-4500", "Railways U-9500", "Malaysia G-1500", "Singapore B-3000"]
-
-
         for i in country_list:
             self.Banker.asset_list.append(Country(country_list[i][0], i,
                                              country_list[i][1], 
@@ -410,15 +188,105 @@ class Smartcontroller(object):
             i += 1
         return positions
 
-    def next_move(self):
-        dice_out = self.dice.throw_dice()
-        self.logObj.printer("Player %s, your chance")
+    def next_move(self, chance):
+        self.logObj.printer("Chance #%d" % chance)
+        turnplayer = self.players[self.turnHolderPlayerID]
+        print turnplayer.name
+        self.logObj.printer("Player %s, your chance" % turnplayer.name) 
+        optionGameRecv = self.gamePlayMenu.auto_runMenu(1) # simulation line
+        if optionGameRecv == 1:
+            dice_out = self.dice.throw_dice()
+            self.logObj.printer("Dice outcome = %d" % dice_out)
+            iscrossover = turnplayer.move(dice_out)
+            if iscrossover:
+                self.Banker.process_request(Transaction(0, turnplayer.id, 13, 1500, 'Crossover payment'))
+            self.print_movement_info(turnplayer)
+            ownerID = GameController.get_property_owner_where_player_standing(playerTurn)
+            if ownerID == -1:
+                player_pos = GameController.get_board_position_where_player_standing(playerTurn)
+                if player_pos == 5 or player_pos == 26:  # UNO
+                    GameController.apply_uno_to_player(playerTurn, dice_out)
+                elif player_pos == 17 or player_pos == 30:  # CHANCE
+                    GameController.apply_chance_to_player(playerTurn, dice_out)
+                elif player_pos == 14:  # custom duty
+                    GameController.payCustomDuty(playerTurn)
+                elif player_pos == 22:  # travelling duty
+                    GameController.payTravellingDuty(playerTurn)
+                elif player_pos == 28:  # JAIL
+                    GameController.gotojail(playerTurn)
+                elif player_pos == 10:  # Resort
+                    GameController.enjoyment_in_resort(playerTurn)
+                elif player_pos == 19:  # Party House
+                    GameController.get_party_from_others(playerTurn)
+                else:
+                    pass
+            else:
+                if GameController.check_property_availability_status(playerTurn):
+                    if GameController.check_player_ability_to_buy_property(playerTurn):
+                        player_buyconsent = PlayerBuyMenu.auto_runMenu(1)  # This auto_runMenu statement is for simulation purpose.
+                        if player_buyconsent == 1:
+                            p.printer("Purchase Done.")
+                            GameController.sell_property_to_player(playerTurn)
+                        else:
+                            p.printer("Player-%d is not interested in this property." % playerTurn)
+                    else:
+                        p.printer("Player-%d doesn't have enough cash to buy this property." % playerTurn)
+                elif ownerID == playerTurn:
+                    p.printer("You reached on your own property.")
+                    pass
+                elif 0 < ownerID < 5:
+                    amnt = GameController.get_property_rent_where_player_standing(playerTurn)
+                    GameController.transaction_between_two_player(ownerID, playerTurn, amnt)
+                    p.printer("This is Player%d's property. The rent of amount $%s needs to be paid." % (ownerID, amnt))
+                else:
+                    pass
+
+            GameController.check_players_with_negative_cash()
+            BankCashCheck = GameController.check_bank_with_negative_cash(0)
+            GameController.display_board()
+            GameController.print_all_player_assets_table()
+            if GameController.get_game_state() == 1:
+                optionPlayerRecv = 0
+                while optionPlayerRecv != 1:
+                    if chanceCount < 500:
+                        optionPlayerRecv = PlayerMenu.auto_runMenu(1)
+                    else:
+                        optionPlayerRecv = PlayerMenu.runMenu()
+                    if optionPlayerRecv == 1:
+                        p.printer("Continuing the game...\n")
+                    elif optionPlayerRecv == 2:
+                        p.printer("Player %d wants to redeem his mortgaged assets" % GameController.get_turnHolderPlayerID())
+                        GameController.redeem_mortgaged_property_of_player(GameController.get_turnHolderPlayerID())
+                    elif optionPlayerRecv == 3:
+                        p.printer("Player %d wants to build property on his site" % GameController.get_turnHolderPlayerID())
+                        GameController.build_property_on_player_site(GameController.get_turnHolderPlayerID())
+                    else:
+                        pass
+                GameController.move_turnHolderPlayerID()
+            elif GameController.get_game_state() == -1:
+                p.printer("Game Finished and the winner is %s!.\n" % GameController.get_winner_name())
+                optionGameRecv = 2
+            elif GameController.get_game_state() == -2:
+                p.printer("Game drawn due to bank ran out of cash after %d chances.\n" % chanceCount)
+                winnerID = GameController.get_winner()
+                winnerName = GameController.get_player_name_by_its_ID(winnerID)
+                p.printer("The winner is Player-%d, %s!" % (winnerID, winnerName))
+                optionGameRecv = 2
+            else:
+                pass
+            if iscrossover:
+                pass
+           
+        
+        
+        
+        self.move_turnHolderPlayerID()
     
     def set_turnHolderPlayerID(self, pl_id):
         self.turnHolderPlayerID = pl_id
 
     def move_turnHolderPlayerID(self):
-        self.turnHolderPlayerID = self.available_players_in_game[(self.available_players_in_game.index(self.get_turnHolderPlayerID()) + 1) % len(self.available_players_in_game)]
+        self.turnHolderPlayerID = (self.turnHolderPlayerID + 1 ) % len(self.players)
 
     def get_turnHolderPlayerID(self):
         return self.turnHolderPlayerID
@@ -585,9 +453,8 @@ class Smartcontroller(object):
         else:
             return -1
 
-    def get_position_name_where_player_standing(self, PlayerID):
-        board_pos = self.get_board_position_where_player_standing(PlayerID)
-        pos_name = self.board_display_data[board_pos-1]
+    def get_position_name_where_player_standing(self, player):
+        pos_name = self.board_display_data[player.board_pos-1]
         return pos_name
 
     def get_board_position_where_player_standing(self, PlayerID):
