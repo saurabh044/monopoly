@@ -58,7 +58,51 @@ class Banksmart(object):
             if i.owner == player_id:
                 val += i.buy_price
         return val
-                
+    
+    def get_owner_by_assetid(self, id):
+        for i in self.asset_list:
+            if i.board_loc == id:
+                return i.owner
+        return -1    
+    
+    def get_buyprice_by_assetid(self, id):
+        for i in self.asset_list:
+            if i.board_loc == id:
+                return i.buy_price
+        return -1       
+        
+    def get_current_rent_by_assetid(self, id):
+        asset = None
+        for i in self.asset_list:
+            if i.board_loc == id:
+                if i.owner > 10:
+                    return -1
+                elif i.owner == 0:
+                    return -1
+                else:
+                    asset = i  
+        if asset == None:
+            return -1              
+        if asset.issite():
+            if asset.prop_count == 0:
+                color_count = 0
+                for i in self.asset_list:
+                    if i.issite():
+                        if i.owner == asset.owner and i.color_grp == asset.color_grp:
+                            color_count += 1
+                if color_count >= 3:
+                    return asset.current_rent * 2 
+            return asset.current_rent
+        else:
+            grp_count = 0
+            for i in self.asset_list:
+                if i.isutil():
+                    if i.owner == asset.owner and i.pair_grp == asset.pair_grp:
+                        grp_count += 1 
+            if grp_count == 2:
+                return asset.pair_rent
+            return asset.current_rent             
+                    
     def group_wise_asset_list(self, player_id):
         redProperty = ""
         greenProperty = ""
@@ -128,12 +172,15 @@ class Banksmart(object):
     # 11. General Payment from bank to player (amount)
     # 12. Bank cash reserve add (amount)
     # 13. Crossover Payment (amount)
+    # 14. Fine Payment (amount)
+    # 15. Custom Duty ()
+    
     
     def process_request(self, transaction):
         payee_acc_id = transaction.payee
         recep_acc_id = transaction.recipient 
         data = transaction.detail
-        if transaction.type in [11, 13]:
+        if transaction.type in [11, 13, 14]:
             if self.accounts[payee_acc_id].isenoughbalance(data):
                 self.accounts[payee_acc_id].withdraw(data)
                 self.accounts[recep_acc_id].deposit(data)

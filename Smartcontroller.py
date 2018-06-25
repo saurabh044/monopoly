@@ -39,21 +39,26 @@ utility_list = {"Waterways": [4, 9500, 2000, 1400, 2200, 1],
                 "Petroleum": [32, 5500, 1300, 500, 1000, 3],
                 "Railways": [34, 9500, 5000, 1500, 2500, 2]
                 }
-
 board_display_data = ["Start", "England R-2500", "Iraq G-5000", 
                       "Waterways U-9500", "UNO",
                       "France R-2500", "Iran G-2500", "Satellite U-2000",
                       "Egypt G-3200", "Resort", "Canada Y-4000", 
-                      "Germany R-3500", "Airways U-10500", "Custom Duty",
+                      "Germany R-3500", "Airways U-10500", "Custom-Duty",
                       "Swiss R-3500", "Brazil Y-2500", "Chance",
-                      "Italy R-3500", "Party House", "Japan B-2500",
-                      "USA Y-8500", "Travelling Duty", "Roadways U-3500",
+                      "Italy R-3500", "Party-House", "Japan B-2500",
+                      "USA Y-8500", "Travelling-Duty", "Roadways U-3500",
                       "Mexico Y-4000", "Hongkong B-2000", "UNO", 
                       "Australia Y-3300", "Jail", "India B-5500", "Chance", 
                       "SaudiArab G-5500", "Petroleum U-5500", "China B-4500", 
                       "Railways U-9500", "Malaysia G-1500", 
                       "Singapore B-3000"]
-
+assets_board_locations = { 2: "",  3: "",  4: "",  6: "",
+                           7: "",  8: "",  9: "", 11: "",
+                          12: "", 13: "", 15: "", 16: "",
+                          18: "", 20: "", 21: "", 23: "",
+                          24: "", 25: "", 27: "", 29: "",
+                          31: "", 32: "", 33: "", 34: "",
+                          35: "", 36: ""}
         
 class Dice(object):
 
@@ -77,6 +82,7 @@ class Transaction(object):
     
 class Smartcontroller(object):
 
+    crossover_amount = 1500
     def __init__(self, player_count, log_path):
         self.logPath = log_path
         self.gamePlayMenu = MenuBox("Play Game", self.logPath)
@@ -119,20 +125,14 @@ class Smartcontroller(object):
         # Initial payment of $25000 to all the players for starting the game 
         for i in range(self.player_count):
             self.Banker.process_request(Transaction(0, i+1, 11, 25000, "Initial Payment"))
-        self.assets_board_locations = { 2: "",  3: "",  4: "",  6: "",
-                                        7: "",  8: "",  9: "", 11: "",
-                                       12: "", 13: "", 15: "", 16: "",
-                                       18: "", 20: "", 21: "", 23: "",
-                                       24: "", 25: "", 27: "", 29: "",
-                                       31: "", 32: "", 33: "", 34: "",
-                                       35: "", 36: ""}
+
         for i in country_list:
             self.Banker.asset_list.append(Country(country_list[i][0], i,
-                                             country_list[i][1], 
-                                             country_list[i][2], 
-                                             country_list[i][4], 
-                                             country_list[i][5], 
-                                             country_list[i][6], 
+                                             country_list[i][1],
+                                             country_list[i][2],
+                                             country_list[i][4],
+                                             country_list[i][5],
+                                             country_list[i][6],
                                              country_list[i][3]))
         for i in utility_list:
             self.Banker.asset_list.append(Utility(utility_list[i][0], i, 
@@ -181,12 +181,7 @@ class Smartcontroller(object):
         del self.available_players_index[player_id]
 
     def get_players_position(self):
-        positions = []
-        i = 0
-        while i < len(self.Players):
-            positions.append(self.Players[i].getPlayerPosition())
-            i += 1
-        return positions
+        return [i.board_pos for i in self.players]
 
     def next_move(self, chance):
         self.logObj.printer("Chance #%d" % chance)
@@ -198,50 +193,51 @@ class Smartcontroller(object):
             dice_out = self.dice.throw_dice()
             self.logObj.printer("Dice outcome = %d" % dice_out)
             iscrossover = turnplayer.move(dice_out)
+            target_loc = turnplayer.board_pos
             if iscrossover:
-                self.Banker.process_request(Transaction(0, turnplayer.id, 13, 1500, 'Crossover payment'))
+                self.Banker.process_request(Transaction(0, turnplayer.id, 13, crossover_amount, 'Crossover payment'))
             self.print_movement_info(turnplayer)
-            ownerID = GameController.get_property_owner_where_player_standing(playerTurn)
+            ownerID = self.get_property_owner_where_player_standing(turnplayer)
             if ownerID == -1:
-                player_pos = GameController.get_board_position_where_player_standing(playerTurn)
+                player_pos = self.get_board_position_where_player_standing(turnplayer)
                 if player_pos == 5 or player_pos == 26:  # UNO
-                    GameController.apply_uno_to_player(playerTurn, dice_out)
+                    self.apply_uno_to_player(turnplayer.id, dice_out)
                 elif player_pos == 17 or player_pos == 30:  # CHANCE
-                    GameController.apply_chance_to_player(playerTurn, dice_out)
+                    self.apply_chance_to_player(playerTurn, dice_out)
                 elif player_pos == 14:  # custom duty
-                    GameController.payCustomDuty(playerTurn)
+                    self.payCustomDuty(playerTurn)
                 elif player_pos == 22:  # travelling duty
-                    GameController.payTravellingDuty(playerTurn)
+                    self.payTravellingDuty(playerTurn)
                 elif player_pos == 28:  # JAIL
-                    GameController.gotojail(playerTurn)
+                    self.gotojail(playerTurn)
                 elif player_pos == 10:  # Resort
-                    GameController.enjoyment_in_resort(playerTurn)
+                    self.enjoyment_in_resort(turnplayer)
                 elif player_pos == 19:  # Party House
-                    GameController.get_party_from_others(playerTurn)
+                    self.get_party_from_others(playerTurn)
                 else:
                     pass
             else:
-                if GameController.check_property_availability_status(playerTurn):
-                    if GameController.check_player_ability_to_buy_property(playerTurn):
-                        player_buyconsent = PlayerBuyMenu.auto_runMenu(1)  # This auto_runMenu statement is for simulation purpose.
+                if self.check_property_availability_status(target_loc):
+                    if self.check_player_ability_to_buy_property(turnplayer):
+                        player_buyconsent = self.PlayerBuyMenu.auto_runMenu(1)  # This auto_runMenu statement is for simulation purpose.
                         if player_buyconsent == 1:
-                            p.printer("Purchase Done.")
-                            GameController.sell_property_to_player(playerTurn)
+                            self.logObj.printer("Purchase Done.")
+                            self.sell_property_to_player(turnplayer)
                         else:
-                            p.printer("Player-%d is not interested in this property." % playerTurn)
+                            p.printer("Player-%d is not interested in this property." % turnplayer)
                     else:
-                        p.printer("Player-%d doesn't have enough cash to buy this property." % playerTurn)
-                elif ownerID == playerTurn:
+                        p.printer("Player-%d doesn't have enough cash to buy this property." % turnplayer)
+                elif ownerID == turnplayer.id:
                     p.printer("You reached on your own property.")
                     pass
                 elif 0 < ownerID < 5:
-                    amnt = GameController.get_property_rent_where_player_standing(playerTurn)
+                    amnt = GameController.get_property_rent_where_player_standing(turnplayer)
                     GameController.transaction_between_two_player(ownerID, playerTurn, amnt)
                     p.printer("This is Player%d's property. The rent of amount $%s needs to be paid." % (ownerID, amnt))
                 else:
                     pass
 
-            GameController.check_players_with_negative_cash()
+            self.check_players_with_negative_cash()
             BankCashCheck = GameController.check_bank_with_negative_cash(0)
             GameController.display_board()
             GameController.print_all_player_assets_table()
@@ -292,7 +288,7 @@ class Smartcontroller(object):
         return self.turnHolderPlayerID
 
     def get_player_by_its_ID(self, ids):
-        if ids == 5:
+        if ids == 0:
             return self.Banker
         else:
             return self.players[self.available_players_index[ids]]
@@ -339,17 +335,17 @@ class Smartcontroller(object):
 
     def display_board(self):
         i = 0
-        while i < len(self.board_display_data):
+        while i < len(board_display_data):
             pp = self.check_all_player_presence_on_a_position(i+1)
-            if (i+1) in self.assets_board_locations:
-                owner_tag = self.assets_board_locations[i+1]
+            if (i+1) in assets_board_locations:
+                owner_tag = assets_board_locations[i+1]
             else:
                 owner_tag = ""
             loc = ""
             for j in range(len(pp)):
                 if pp[j]:
                     loc = loc + "<P" + str(pp[j].id) + ">"
-            self.BoardData[i+1] = [self.board_display_data[i], owner_tag, loc]
+            self.BoardData[i+1] = [board_display_data[i], owner_tag, loc]
             i += 1
         self.logObj.printer("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------")
         for i in range(9):
@@ -370,7 +366,7 @@ class Smartcontroller(object):
         self.logObj.printer("--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------\n")
 
     def get_country_util_by_board_position(self, board_pos):
-        board_pos_val = self.board_display_data[board_pos-1]
+        board_pos_val = board_display_data[board_pos-1]
         matchObj = re.search(r'(.+)\s.*([RGYBU])\(\$', board_pos_val, re.M | re.I)
         if matchObj is not None:
             board_country_util_name = matchObj.group(1)
@@ -400,68 +396,65 @@ class Smartcontroller(object):
         else:
             self.logObj.printer("Property already sold.")
 
-    def check_property_availability_status(self, PlayerID):
-        board_pos = self.get_player_by_its_ID(PlayerID).getPlayerPosition()
-        if board_pos in self.properties_board_locations:
-            if self.get_country_util_by_board_position(board_pos).get_ownership() == 0:
+    def check_property_availability_status(self, location):
+        if location in assets_board_locations:
+            if self.Banker.get_owner_by_assetid(location) == 0:
                 return True
             else:
                 return False
 
-    def check_property_buy_price(self, PlayerID):
-        board_pos = self.get_player_by_its_ID(PlayerID).getPlayerPosition()
-        if board_pos in self.properties_board_locations:
-            return self.get_country_util_by_board_position(board_pos).getBuyPrice()
+    def check_property_buy_price(self, location):
+        if location in assets_board_locations:
+            return self.Banker.get_buyprice_by_assetid(location)
         else:
             return 0
 
-    def check_player_ability_to_buy_property(self, PlayerID):
-        if self.check_property_buy_price(PlayerID) < self.get_player_cash_balance(PlayerID):
+    def check_player_ability_to_buy_property(self, player):
+        if self.check_property_buy_price(player.board_pos) < self.Banker.get_players_balance(player.id):
             return True
         else:
             return False
 
-    def get_property_owner_where_player_standing(self, PlayerID):
-        board_pos = self.get_player_by_its_ID(PlayerID).getPlayerPosition()
-        if board_pos in self.properties_board_locations:
-            return self.get_country_util_by_board_position(board_pos).get_ownership()
+    def get_property_owner_where_player_standing(self, playerobj):
+        if playerobj.board_pos in assets_board_locations:
+            return self.Banker.get_owner_by_assetid(playerobj.board_pos)
         else:
             return -1
 
-    def get_property_rent_where_player_standing(self, PlayerID):
-        board_pos = self.get_player_by_its_ID(PlayerID).getPlayerPosition()
-        if board_pos in self.properties_board_locations:
-            ownerID = self.get_property_owner_where_player_standing(PlayerID)
-            if ownerID > 10:
-                ownerID -= 10
-            if self.get_country_util_by_board_position(board_pos).isSite() is True and ownerID != 0:
-                prop_cnt = self.get_country_util_by_board_position(board_pos).get_property_count()
-                if self.get_player_by_its_ID(ownerID).asset_group_counter[self.get_country_util_by_board_position(board_pos).get_group()] > 2 and prop_cnt == 0:
-                    self.logObj.printer("Double site rent attracted.")
-                    return self.get_country_util_by_board_position(board_pos).get_rent() * 2
-                else:
-                    return self.get_country_util_by_board_position(board_pos).get_rent()
-            elif self.get_country_util_by_board_position(board_pos).isUtil() is True and ownerID != 0:
-                if self.get_player_by_its_ID(ownerID).util_group_flag[self.get_country_util_by_board_position(board_pos).get_util_group()] > 1:
-                    self.logObj.printer("Paired rent attracted for %s." % self.get_country_util_by_board_position(board_pos).get_name())
-                    return self.get_country_util_by_board_position(board_pos).get_paired_rent()
-                else:
-                    return self.get_country_util_by_board_position(board_pos).get_rent()
-            else:
-                self.logObj.printer("Position not occupied by any player.")
-                return self.get_country_util_by_board_position(board_pos).get_rent()
-        else:
-            return -1
+    def get_property_rent_where_player_standing(self, player):
+        board_pos = player.board_pos
+        return self.Banker.get_current_rent_by_assetid(board_pos)
+#         if board_pos in self.properties_board_locations:
+#             ownerID = self.get_property_owner_where_player_standing(PlayerID)
+#             if ownerID > 10:
+#                 ownerID -= 10
+#             if self.get_country_util_by_board_position(board_pos).isSite() is True and ownerID != 0:
+#                 prop_cnt = self.get_country_util_by_board_position(board_pos).get_property_count()
+#                 if self.get_player_by_its_ID(ownerID).asset_group_counter[self.get_country_util_by_board_position(board_pos).get_group()] > 2 and prop_cnt == 0:
+#                     self.logObj.printer("Double site rent attracted.")
+#                     return self.get_country_util_by_board_position(board_pos).get_rent() * 2
+#                 else:
+#                     return self.get_country_util_by_board_position(board_pos).get_rent()
+#             elif self.get_country_util_by_board_position(board_pos).isUtil() is True and ownerID != 0:
+#                 if self.get_player_by_its_ID(ownerID).util_group_flag[self.get_country_util_by_board_position(board_pos).get_util_group()] > 1:
+#                     self.logObj.printer("Paired rent attracted for %s." % self.get_country_util_by_board_position(board_pos).get_name())
+#                     return self.get_country_util_by_board_position(board_pos).get_paired_rent()
+#                 else:
+#                     return self.get_country_util_by_board_position(board_pos).get_rent()
+#             else:
+#                 self.logObj.printer("Position not occupied by any player.")
+#                 return self.get_country_util_by_board_position(board_pos).get_rent()
+#         else:
+#             return -1
 
     def get_position_name_where_player_standing(self, player):
-        pos_name = self.board_display_data[player.board_pos-1]
-        return pos_name
+        return board_display_data[player.board_pos-1].split(' ')[0]
 
-    def get_board_position_where_player_standing(self, PlayerID):
-        return self.get_player_by_its_ID(PlayerID).getPlayerPosition()
+    def get_board_position_where_player_standing(self, player):
+        return player.board_pos
 
     def transaction_between_two_player(self, recipient, sender, amount):
-        self.payment_channel(recipient, sender, amount, "Player-%d to Player-%d" % (sender, recipient))
+        self.Banker.process_request(Transaction(sender, recipient, 11, amount, "Player-%d to Player-%d" % (sender, recipient) ))
 
     def transmit_from_one_to_rest(self, sender, amount, reason_text):
         if self.check_a_player_if_negative_bal_after_deduction(sender,
@@ -478,10 +471,10 @@ class Smartcontroller(object):
                 self.payment_channel(receiver, i, amount, "Receive from all: %s" % reason_text)
 
     def pay_fine(self, culprit, amount, reason_text):
-        self.payment_channel(5, culprit, amount, reason_text)
+        self.Banker.process_request(Transaction(culprit, 0, 14, amount, reason_text))
 
     def receive_reward(self, recipient, amount, reason_text):
-        self.payment_channel(recipient, 5, amount, reason_text)
+        self.Banker.process_request(Transaction(0, recipient, 11, amount, reason_text))      
 
     def get_site_count_of_player(self, player_id):
         total_sites = 0
@@ -653,8 +646,8 @@ class Smartcontroller(object):
 
     def check_players_with_negative_cash(self):
         player_to_remove = []
-        for i in self.available_players_index.values():
-            if self.Players[i].getPlayerCashBalance() < 0:
+        for i in self.players:
+            if self.Banker.get_players_balance(i.id) < 0:
                 if (self.Players[i].get_player_credit_available() + self.Players[i].getPlayerCashBalance()) > 0:
                     while self.Players[i].getPlayerCashBalance() < 0:
                         assetSelectMenu = self.display_player_asset_list_menu(self.Players[i].getPlayerID())
