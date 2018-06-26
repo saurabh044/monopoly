@@ -1,6 +1,5 @@
 from Smartcontroller import Smartcontroller
 from MenuBox import MenuBox
-from Dice import Dice
 from Printer import Printer
 import os
 if not os.path.exists("business_game_logs"):
