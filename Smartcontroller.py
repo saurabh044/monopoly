@@ -67,11 +67,8 @@ class Dice(object):
 
     def throw_dice(self):
         out = random.randint(2, 12)
-        return out  
-        
-         
-
-
+        return out
+    
     
 class Smartcontroller(object):
 
@@ -320,7 +317,7 @@ class Smartcontroller(object):
                     loc = loc + "<P" + str(pp[j].id) + ">"
             self.BoardData[i+1] = [board_display_data[i], owner_tag, loc]
             i += 1
-        self.logObj.printer("----------------------------------------------------------------------------------------------------------------------------------------------------")
+        self.logObj.printer("--------------------------------------------------------------------------------------------------------------------------------------------------------")
         for i in range(9):
             self.logObj.printer("{: >16} {: <6} {: <16} {: >16} {: <6} {: <16} {: >16} {: <6} {: <16} {: >16} {: <6} {: <16}".format(
                                                            self.BoardData[i + 1][0],
@@ -336,7 +333,7 @@ class Smartcontroller(object):
                                                            self.BoardData[i + 28][1],
                                                            self.BoardData[i + 28][2],
                                                            ))
-        self.logObj.printer("----------------------------------------------------------------------------------------------------------------------------------------------------\n")
+        self.logObj.printer("--------------------------------------------------------------------------------------------------------------------------------------------------------\n")
 
     def get_country_util_by_board_position(self, board_pos):
         board_pos_val = board_display_data[board_pos-1]
@@ -387,28 +384,6 @@ class Smartcontroller(object):
     def get_property_rent_where_player_standing(self, player):
         board_pos = player.board_pos
         return self.Banker.get_current_rent_by_assetid(board_pos)
-#         if board_pos in self.properties_board_locations:
-#             ownerID = self.get_property_owner_where_player_standing(PlayerID)
-#             if ownerID > 10:
-#                 ownerID -= 10
-#             if self.get_country_util_by_board_position(board_pos).isSite() is True and ownerID != 0:
-#                 prop_cnt = self.get_country_util_by_board_position(board_pos).get_property_count()
-#                 if self.get_player_by_its_ID(ownerID).asset_group_counter[self.get_country_util_by_board_position(board_pos).get_group()] > 2 and prop_cnt == 0:
-#                     self.logObj.printer("Double site rent attracted.")
-#                     return self.get_country_util_by_board_position(board_pos).get_rent() * 2
-#                 else:
-#                     return self.get_country_util_by_board_position(board_pos).get_rent()
-#             elif self.get_country_util_by_board_position(board_pos).isUtil() is True and ownerID != 0:
-#                 if self.get_player_by_its_ID(ownerID).util_group_flag[self.get_country_util_by_board_position(board_pos).get_util_group()] > 1:
-#                     self.logObj.printer("Paired rent attracted for %s." % self.get_country_util_by_board_position(board_pos).get_name())
-#                     return self.get_country_util_by_board_position(board_pos).get_paired_rent()
-#                 else:
-#                     return self.get_country_util_by_board_position(board_pos).get_rent()
-#             else:
-#                 self.logObj.printer("Position not occupied by any player.")
-#                 return self.get_country_util_by_board_position(board_pos).get_rent()
-#         else:
-#             return -1
 
     def get_position_name_where_player_standing(self, player):
         return board_display_data[player.board_pos-1].split(' ')[0]
@@ -776,9 +751,6 @@ class Smartcontroller(object):
             self.logObj.printer("You reached on %s which attracts rent of $%d." % (location_name, location_rent))
         else:
             self.logObj.printer("You reached on %s." % location_name)
-
-    def player_payment_on_crossover(self, player_id):
-        self.receive_reward(player_id, 1500, "Crossover Payment")
 
     def get_winner(self):
         winner = self.Players[0]

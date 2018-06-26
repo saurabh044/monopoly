@@ -17,6 +17,7 @@ class Account(object):
         self.name = name
         self.balance = balance
         self.transaction_statement = Printer()
+        self.state = True
         
     def deposit(self, amount):
         self.balance += amount
@@ -27,7 +28,10 @@ class Account(object):
     def isenoughbalance(self, amount):
         if self.balance >= amount:
             return True
-        return False     
+        return False  
+    
+    def deactivate(self):
+        self.state = False   
     
 #     @property
 #     def id(self):
