@@ -1,6 +1,6 @@
 from MenuBox import MenuBox
 from MenuBox2 import MenuBox2
-from Banksmart import Banksmart
+from Banksmart import Banksmart, Transaction
 from Smartplayer import Smartplayer
 from Asset import Country 
 from Asset import Utility
@@ -70,19 +70,12 @@ class Dice(object):
         return out  
         
          
-class Transaction(object):
-   
-    def __init__(self, payee, recipient, type, detail, msg):
-        self.payee = payee
-        self.recipient = recipient
-        self.type = type 
-        self.detail = detail
-        self.msg = msg  
+
 
     
 class Smartcontroller(object):
 
-    crossover_amount = 1500
+    crossover_amount = 100
     def __init__(self, player_count, log_path):
         self.logPath = log_path
         self.gamePlayMenu = MenuBox("Play Game", self.logPath)
@@ -195,7 +188,7 @@ class Smartcontroller(object):
             iscrossover = turnplayer.move(dice_out)
             target_loc = turnplayer.board_pos
             if iscrossover:
-                self.Banker.process_request(Transaction(0, turnplayer.id, 13, crossover_amount, 'Crossover payment'))
+                self.Banker.process_request(Transaction(0, turnplayer.id, 13, Smartcontroller.crossover_amount, 'Crossover payment'))
             self.print_movement_info(turnplayer)
             ownerID = self.get_property_owner_where_player_standing(turnplayer)
             if ownerID == -1:
@@ -203,17 +196,17 @@ class Smartcontroller(object):
                 if player_pos == 5 or player_pos == 26:  # UNO
                     self.apply_uno_to_player(turnplayer.id, dice_out)
                 elif player_pos == 17 or player_pos == 30:  # CHANCE
-                    self.apply_chance_to_player(playerTurn, dice_out)
+                    self.apply_chance_to_player(turnplayer.id, dice_out)
                 elif player_pos == 14:  # custom duty
-                    self.payCustomDuty(playerTurn)
+                    self.payCustomDuty(turnplayer.id)
                 elif player_pos == 22:  # travelling duty
-                    self.payTravellingDuty(playerTurn)
+                    self.payTravellingDuty(turnplayer.id)
                 elif player_pos == 28:  # JAIL
-                    self.gotojail(playerTurn)
+                    self.gotojail(turnplayer.id)
                 elif player_pos == 10:  # Resort
-                    self.enjoyment_in_resort(turnplayer)
+                    self.enjoyment_in_resort(turnplayer.id)
                 elif player_pos == 19:  # Party House
-                    self.get_party_from_others(playerTurn)
+                    self.get_party_from_others(turnplayer.id)
                 else:
                     pass
             else:
@@ -224,16 +217,14 @@ class Smartcontroller(object):
                             self.logObj.printer("Purchase Done.")
                             self.sell_property_to_player(turnplayer)
                         else:
-                            p.printer("Player-%d is not interested in this property." % turnplayer)
+                            self.logObj.printer("Player-%d is not interested in this property." % turnplayer)
                     else:
-                        p.printer("Player-%d doesn't have enough cash to buy this property." % turnplayer)
+                        self.logObj.printer("Player-%d doesn't have enough cash to buy this property." % turnplayer.id)
                 elif ownerID == turnplayer.id:
-                    p.printer("You reached on your own property.")
+                    self.logObj.printer("You reached on your own property.")
                     pass
                 elif 0 < ownerID < 5:
-                    amnt = GameController.get_property_rent_where_player_standing(turnplayer)
-                    GameController.transaction_between_two_player(ownerID, playerTurn, amnt)
-                    p.printer("This is Player%d's property. The rent of amount $%s needs to be paid." % (ownerID, amnt))
+                    self.Banker.process_request(Transaction(turnplayer.id, ownerID, 1, turnplayer.board_pos, "rent payment"))
                 else:
                     pass
 
@@ -251,7 +242,7 @@ class Smartcontroller(object):
                     if optionPlayerRecv == 1:
                         self.logObj.printer("Continuing the game...\n")
                     elif optionPlayerRecv == 2:
-                        p.printer("Player %d wants to redeem his mortgaged assets" % self.get_turnHolderPlayerID())
+                        self.logObj.printer("Player %d wants to redeem his mortgaged assets" % self.get_turnHolderPlayerID())
                         self.redeem_mortgaged_property_of_player(self.get_turnHolderPlayerID())
                     elif optionPlayerRecv == 3:
                         self.logObj.printer("Player %d wants to build property on his site" % self.get_turnHolderPlayerID())
@@ -429,18 +420,14 @@ class Smartcontroller(object):
         self.Banker.process_request(Transaction(sender, recipient, 11, amount, "Player-%d to Player-%d" % (sender, recipient) ))
 
     def transmit_from_one_to_rest(self, sender, amount, reason_text):
-        if self.check_a_player_if_negative_bal_after_deduction(sender,
-                                                               amount * (len(self.available_players_in_game) - 1)):
-            for i in self.available_players_in_game:
-                if i != sender:
-                    self.payment_channel(i, sender, amount, "Player-%d paid to all: resort." % sender)
-        else:
-            self.logObj.printer("Player-%d is not able to pay the amount as bankrupt and deposited all the assets/cash to bank." % sender)
+        for i in self.players:
+            if i.id != sender:
+                self.Banker.process_request(Transaction(sender, i.id, 11, amount, reason_text))
 
     def receive_from_all_to_one(self, receiver, amount, reason_text):
-        for i in self.available_players_in_game:
-            if i != receiver:
-                self.payment_channel(receiver, i, amount, "Receive from all: %s" % reason_text)
+        for i in self.players:
+            if i.id != receiver:
+                self.Banker.process_request(Transaction(i.id, receiver, 11, amount, reason_text))
 
     def pay_fine(self, culprit, amount, reason_text):
         self.Banker.process_request(Transaction(culprit, 0, 14, amount, reason_text))
@@ -455,23 +442,11 @@ class Smartcontroller(object):
                 total_sites += 1
         return total_sites
 
-    def payCustomDuty(self, recipient):
-        total_sites = self.get_site_count_of_player(recipient)
-        if total_sites > 9:
-            duty = 1000
-        else:
-            duty = total_sites * 100
-        self.logObj.printer("Payment required for custom duty of $%d." % duty)
-        self.payment_channel(5, recipient, duty, "Custom Duty")
+    def payCustomDuty(self, recipient): 
+        self.Banker.process_request(Transaction(recipient, 0, 15, None, "Custom Duty"))
 
     def payTravellingDuty(self, recipient):
-        total_sites = self.get_site_count_of_player(recipient)
-        if total_sites > 9:
-            duty = 500
-        else:
-            duty = total_sites * 50
-        self.logObj.printer("Payment required for travelling duty of $%d." % duty)
-        self.payment_channel(5, recipient, duty, "travelling Duty")
+        self.Banker.process_request(Transaction(recipient, 0, 16, None, "Travelling Duty"))
 
     def enjoyment_in_resort(self, player_id):
         self.transmit_from_one_to_rest(player_id, 200, "Resort money")
@@ -480,11 +455,8 @@ class Smartcontroller(object):
         self.receive_from_all_to_one(player_id, 200, "Reached party house")
 
     def gotojail(self,player_id):
-        if self.check_a_player_if_negative_bal_after_deduction(player_id, 100):
-            self.pay_fine(player_id, 100, "Reached on Jail")
-        else:
-            self.logObj.printer("Player-%d is not able to pay the amount as bankrupt and deposited all the assets/cash to bank." % player_id)
-
+        self.pay_fine(player_id, 100, "Reached on Jail")
+        
     def check_all_player_presence_on_a_position(self, board_pos):
         pres = []
         for i in self.players:
@@ -505,7 +477,9 @@ class Smartcontroller(object):
         elif rule_num == 8:
             self.logObj.printer("Go to party house and collect $200 from each player.")
             self.receive_from_all_to_one(recipient, 200, "UNO-8: Party house")
-            self.get_player_by_its_ID(recipient).jump_me(19)
+            for i in self.players:
+                if i.id == recipient:
+                    i.jump(19)
         elif rule_num == 10:
             self.logObj.printer("Receive interest on shares of $1500.")
             self.receive_reward(recipient, 1500, "UNO-10: shares interest")
@@ -515,7 +489,9 @@ class Smartcontroller(object):
         elif rule_num == 3:
             self.logObj.printer("Go to jail.")
             self.pay_fine(recipient, 500, "UNO-3: Sent to Jail.")
-            self.get_player_by_its_ID(recipient).jump_me(28)
+            for i in self.players:
+                if i.id == recipient:
+                    i.jump(28)
         elif rule_num == 5:
             self.logObj.printer("School and medical fees expenses of $2500.")
             self.pay_fine(recipient, 2500, "UNO-5: School Fees.")
@@ -547,7 +523,9 @@ class Smartcontroller(object):
         elif rule_num == 10:
             self.logObj.printer("Go to jail.")
             self.pay_fine(recipient, 500, "Chance-10: Sent to jail")
-            self.get_player_by_its_ID(recipient).jump_me(28)
+            for i in self.players:
+                if i.id == recipient:
+                    i.jump(28)
         elif rule_num == 12:
             self.logObj.printer("Repair of your car of $200.")
             self.pay_fine(recipient, 200, "Chance-12: Car repair")
@@ -559,8 +537,7 @@ class Smartcontroller(object):
             self.receive_reward(recipient, 1000, "Chance-5: won cross-word")
         elif rule_num == 7:
             self.logObj.printer("Collect $100 rent from each player for all of your site.")
-            self.receive_from_all_to_one(recipient, 100 * self.get_site_count_of_player(recipient),
-                                         "Chance-7: Rent collection")
+            self.Banker.process_request(Transaction(None, recipient, 5, 7, "Chance-7: Rent collection"))
         elif rule_num == 9:
             self.logObj.printer("You have won the jackpot of $2000.")
             self.receive_reward(recipient, 2000, "Chance-9: won jackpot")

@@ -1,10 +1,20 @@
 from Printer import Printer
 
 
+class Transaction(object):
+   
+    def __init__(self, payee, recipient, type, detail, msg):
+        self.payee = payee
+        self.recipient = recipient
+        self.type = type 
+        self.detail = detail
+        self.msg = msg  
+        
 class Account(object):
     
-    def __init__(self, id, balance=0):
+    def __init__(self, id, name, balance=0):
         self.id = id 
+        self.name = name
         self.balance = balance
         self.transaction_statement = Printer()
         
@@ -19,17 +29,17 @@ class Account(object):
             return True
         return False     
     
-    @property
-    def id(self):
-        if self._id == 0:
-            return "Bank"
-        else:
-            return 'Player-%d' % self._id
-        
-    @id.setter
-    def id(self, value):
-        self._id = value
-    
+#     @property
+#     def id(self):
+#         if self._id == 0:
+#             return "Bank"
+#         else:
+#             return 'Player-%d' % self._id
+#         
+#     @id.setter
+#     def id(self, value):
+#         self._id = value
+#     
     def set_statement_filename(self, fname):
         self.transaction_statement.set_log_file_name(fname)
         self.transaction_statement.file_only_printer("{: >60} {: >8} {: >8} {: >8}".format("Transaction Details",
@@ -40,12 +50,12 @@ class Banksmart(object):
     def __init__(self, id):
         self.id = id
         self.asset_list = []
-        self.accounts = [Account(0)]
+        self.accounts = [Account(0, "Bank")]
         self.accounts[0].set_statement_filename("./business_game_logs/Bank_account_statement.txt")
        
     def add_players_accounts(self, player_count):
         for i in range(player_count):
-            account_var = Account(i+1)
+            account_var = Account(i+1, "PL-%d" % (i+1))
             account_var.set_statement_filename("./business_game_logs/Player-%d_account_statement.txt" % (i+1))
             self.accounts.append(account_var) 
             
@@ -74,7 +84,15 @@ class Banksmart(object):
         for i in self.asset_list:
             if i.board_loc == id:
                 return i.buy_price
-        return -1       
+        return -1     
+    
+    def get_players_countries(self, playerid):
+        count = 0
+        for i in self.asset_list:
+            if i.issite():
+                if i.owner == playerid or i.owner == playerid + 10:
+                    count += 1
+        return count                 
         
     def get_current_rent_by_assetid(self, id):
         asset = None
@@ -179,6 +197,7 @@ class Banksmart(object):
     # 13. Crossover Payment (amount)
     # 14. Fine Payment (amount)
     # 15. Custom Duty ()
+    # 16. Travelling Duty ()
         
     def process_request(self, transaction):
         payee_acc_id = transaction.payee
@@ -205,27 +224,60 @@ class Banksmart(object):
                 return True         
             else:
                 return False
+        if transaction.type == 1:
+            if self.accounts[payee_acc_id].isenoughbalance(self.get_current_rent_by_assetid(data)):
+                self.accounts[payee_acc_id].withdraw(self.get_current_rent_by_assetid(data))
+                self.accounts[recep_acc_id].deposit(self.get_current_rent_by_assetid(data))
+                self.statement_populate(0, transaction, self.get_current_rent_by_assetid(data))
+                self.statement_populate(1, transaction, self.get_current_rent_by_assetid(data))       
+                return True         
+            else:
+                return False
+        if transaction.type == 15:
+            customduty = self.get_players_countries(payee_acc_id) * 100
+            if customduty > 1000:
+                customduty = 1000
+            if self.accounts[payee_acc_id].isenoughbalance(customduty):
+                self.accounts[payee_acc_id].withdraw(customduty)
+                self.accounts[recep_acc_id].deposit(customduty)
+                self.statement_populate(0, transaction, customduty)
+                self.statement_populate(1, transaction, customduty)
+                return True
+            return False  
+                
+        if transaction.type == 16:
+            travelduty = self.get_players_countries(payee_acc_id) * 50
+            if travelduty > 500:
+                travelduty = 500
+            if self.accounts[payee_acc_id].isenoughbalance(travelduty):
+                self.accounts[payee_acc_id].withdraw(travelduty)
+                self.accounts[recep_acc_id].deposit(travelduty)
+                self.statement_populate(0, transaction, travelduty)
+                self.statement_populate(1, transaction, travelduty)
+                return True
+            return False 
+        
+        if transaction.type == 5:
+            if data == 7:
+                amount = self.get_players_countries(recep_acc_id) * 100
+                for i in self.accounts:
+                    if i.id != recep_acc_id:
+                        if i.isenoughbalance(amount):
+                            i.withdraw(amount)
+                            self.accounts[recep_acc_id].deposit(amount)
+                            self.statement_populate(0, Transaction(i.id, recep_acc_id, 0, 0, transaction.msg), amount)
+                            self.statement_populate(1, Transaction(i.id, recep_acc_id, 0, 0, transaction.msg), amount)
             
     def statement_populate(self, trans_type, trans_data, amount):
         if trans_type == 0:
-            msg = trans_data.msg + ' to ' + self.accounts[trans_data.recipient].id
+            msg = trans_data.msg + ' to ' + self.accounts[trans_data.recipient].name
             statement = "{: >60} {: >8} {: >8} {: >8}".format(msg, amount, "", self.accounts[trans_data.payee].balance)
             self.accounts[trans_data.payee].transaction_statement.file_only_printer(statement)
         else:
-            msg = trans_data.msg + ' from ' + self.accounts[trans_data.payee].id
+            msg = trans_data.msg + ' from ' + self.accounts[trans_data.payee].name
             statement = "{: >60} {: >8} {: >8} {: >8}".format(msg, "", amount, self.accounts[trans_data.recipient].balance)
             self.accounts[trans_data.recipient].transaction_statement.file_only_printer(statement)        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+            
         
         
         

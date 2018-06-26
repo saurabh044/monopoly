@@ -20,6 +20,9 @@ class Smartplayer(object):
             self.board_pos -= 36
             return True
         return False
+    
+    def jump(self, value):
+        self.board_pos = value
             
     def deactivate(self):
         self.active = False
