@@ -65,6 +65,11 @@ class Banksmart(object):
                 return i.owner
         return -1    
     
+    def set_owner_to_asset(self, assetid, playerid ):
+        for i in self.asset_list:
+            if i.board_loc == assetid:
+                i.owner = playerid
+    
     def get_buyprice_by_assetid(self, id):
         for i in self.asset_list:
             if i.board_loc == id:
@@ -160,8 +165,8 @@ class Banksmart(object):
         return out   
     
     # 1. Rent payment ()
-    # 2. Country Purchase ()
-    # 3. Utility Purchase ()
+    # 2. Country Purchase (board_location)
+    # 3. Utility Purchase (board_location)
     # 4. UNO Payment (diceVal)
     # 5. Chance Payment (diceVal)
     # 6. Jail Payment ()
@@ -174,8 +179,7 @@ class Banksmart(object):
     # 13. Crossover Payment (amount)
     # 14. Fine Payment (amount)
     # 15. Custom Duty ()
-    
-    
+        
     def process_request(self, transaction):
         payee_acc_id = transaction.payee
         recep_acc_id = transaction.recipient 
@@ -184,23 +188,32 @@ class Banksmart(object):
             if self.accounts[payee_acc_id].isenoughbalance(data):
                 self.accounts[payee_acc_id].withdraw(data)
                 self.accounts[recep_acc_id].deposit(data)
-                self.statement_populate(0, transaction)
-                self.statement_populate(1, transaction)
+                self.statement_populate(0, transaction, data)
+                self.statement_populate(1, transaction, data)
                 return True
             return False                
         if transaction.type == 12:
             self.accounts[recep_acc_id].deposit(data)
-            self.statement_populate(1, transaction)
-            return True        
-        
-    def statement_populate(self, trans_type, trans_data):
+            self.statement_populate(1, transaction, data)
+            return True  
+        if transaction.type in [2, 3]:
+            if self.accounts[payee_acc_id].isenoughbalance(self.get_buyprice_by_assetid(data)):
+                self.accounts[payee_acc_id].withdraw(self.get_buyprice_by_assetid(data))
+                self.accounts[recep_acc_id].deposit(self.get_buyprice_by_assetid(data))
+                self.statement_populate(0, transaction, self.get_buyprice_by_assetid(data))
+                self.statement_populate(1, transaction, self.get_buyprice_by_assetid(data))       
+                return True         
+            else:
+                return False
+            
+    def statement_populate(self, trans_type, trans_data, amount):
         if trans_type == 0:
             msg = trans_data.msg + ' to ' + self.accounts[trans_data.recipient].id
-            statement = "{: >60} {: >8} {: >8} {: >8}".format(msg, trans_data.detail, "", self.accounts[trans_data.payee].balance)
+            statement = "{: >60} {: >8} {: >8} {: >8}".format(msg, amount, "", self.accounts[trans_data.payee].balance)
             self.accounts[trans_data.payee].transaction_statement.file_only_printer(statement)
         else:
             msg = trans_data.msg + ' from ' + self.accounts[trans_data.payee].id
-            statement = "{: >60} {: >8} {: >8} {: >8}".format(msg, "", trans_data.detail, self.accounts[trans_data.recipient].balance)
+            statement = "{: >60} {: >8} {: >8} {: >8}".format(msg, "", amount, self.accounts[trans_data.recipient].balance)
             self.accounts[trans_data.recipient].transaction_statement.file_only_printer(statement)        
         
         

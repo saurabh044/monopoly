@@ -238,46 +238,28 @@ class Smartcontroller(object):
                     pass
 
             self.check_players_with_negative_cash()
-            BankCashCheck = GameController.check_bank_with_negative_cash(0)
-            GameController.display_board()
-            GameController.print_all_player_assets_table()
-            if GameController.get_game_state() == 1:
+            BankCashCheck = self.check_bank_with_negative_cash(0)
+            self.display_board()
+            self.print_all_player_assets_table()
+            if self.state:
                 optionPlayerRecv = 0
                 while optionPlayerRecv != 1:
-                    if chanceCount < 500:
-                        optionPlayerRecv = PlayerMenu.auto_runMenu(1)
+                    if chance < 500:
+                        optionPlayerRecv = self.PlayerMenu.auto_runMenu(1)
                     else:
-                        optionPlayerRecv = PlayerMenu.runMenu()
+                        optionPlayerRecv = self.PlayerMenu.runMenu()
                     if optionPlayerRecv == 1:
-                        p.printer("Continuing the game...\n")
+                        self.logObj.printer("Continuing the game...\n")
                     elif optionPlayerRecv == 2:
-                        p.printer("Player %d wants to redeem his mortgaged assets" % GameController.get_turnHolderPlayerID())
-                        GameController.redeem_mortgaged_property_of_player(GameController.get_turnHolderPlayerID())
+                        p.printer("Player %d wants to redeem his mortgaged assets" % self.get_turnHolderPlayerID())
+                        self.redeem_mortgaged_property_of_player(self.get_turnHolderPlayerID())
                     elif optionPlayerRecv == 3:
-                        p.printer("Player %d wants to build property on his site" % GameController.get_turnHolderPlayerID())
-                        GameController.build_property_on_player_site(GameController.get_turnHolderPlayerID())
+                        self.logObj.printer("Player %d wants to build property on his site" % self.get_turnHolderPlayerID())
+                        self.build_property_on_player_site(self.get_turnHolderPlayerID())
                     else:
                         pass
-                GameController.move_turnHolderPlayerID()
-            elif GameController.get_game_state() == -1:
-                p.printer("Game Finished and the winner is %s!.\n" % GameController.get_winner_name())
-                optionGameRecv = 2
-            elif GameController.get_game_state() == -2:
-                p.printer("Game drawn due to bank ran out of cash after %d chances.\n" % chanceCount)
-                winnerID = GameController.get_winner()
-                winnerName = GameController.get_player_name_by_its_ID(winnerID)
-                p.printer("The winner is Player-%d, %s!" % (winnerID, winnerName))
-                optionGameRecv = 2
-            else:
-                pass
-            if iscrossover:
-                pass
-           
-        
-        
-        
-        self.move_turnHolderPlayerID()
-    
+                self.move_turnHolderPlayerID()        
+            
     def set_turnHolderPlayerID(self, pl_id):
         self.turnHolderPlayerID = pl_id
 
@@ -377,22 +359,12 @@ class Smartcontroller(object):
         else:
             return None
 
-    def sell_property_to_player(self, PlayerID):
-        board_pos = self.get_player_by_its_ID(PlayerID).getPlayerPosition()
-        if self.get_country_util_by_board_position(board_pos).get_ownership() == 0:
-            country_util_obj = self.get_country_util_by_board_position(board_pos)
-            self.get_player_by_its_ID(PlayerID).asset_list.append(country_util_obj)
-            if country_util_obj.isSite():
-                self.get_player_by_its_ID(PlayerID).asset_group_counter[country_util_obj.get_group()] += 1
-            if country_util_obj.isUtil():
-                self.get_player_by_its_ID(PlayerID).util_group_flag[country_util_obj.get_util_group()] += 1
-            self.payment_channel(5, PlayerID, country_util_obj.getBuyPrice(), "%s sold to Player-%d" % (self.get_position_name_where_player_standing(PlayerID), PlayerID))
-            self.get_country_util_by_board_position(board_pos).set_ownership(PlayerID)
-            if country_util_obj.isSite():
-                self.Banker.asset_group_counter[country_util_obj.get_group()] -= 1
-            self.Banker.asset_list.remove(country_util_obj)
-            self.properties_board_locations[board_pos] = "|P" + str(PlayerID) + "|"
-
+    def sell_property_to_player(self, turnplayer):
+        #board_pos = self.get_player_by_its_ID(PlayerID).getPlayerPosition()
+        if self.Banker.get_owner_by_assetid(turnplayer.board_pos) == 0:
+            self.Banker.process_request(Transaction(turnplayer.id, 0, 2, turnplayer.board_pos, 'asset purchase'))
+            self.Banker.set_owner_to_asset(turnplayer.board_pos, turnplayer.id)
+            assets_board_locations[turnplayer.board_pos] = "|P" + str(turnplayer.id) + "|"
         else:
             self.logObj.printer("Property already sold.")
 
@@ -669,8 +641,8 @@ class Smartcontroller(object):
                     player_to_remove.append(self.Players[i])
         for i in player_to_remove:
             self.remove_player_from_game(i.getPlayerID())
-        if len(self.Players) == 1:
-            self.set_game_state(-1)
+        if len(self.players) == 1:
+            self.state = False
 
     def change_ownership_of_country_util(self, objName, playerID):
         objType = self.find_if_name_is_country_or_util(objName)
@@ -703,9 +675,9 @@ class Smartcontroller(object):
         self.logObj.printer(inp_text)
 
     def check_bank_with_negative_cash(self, amount):
-        if self.Banker.getBankCashBalance() < amount:
+        if self.Banker.accounts[0].balance < amount:
             self.logObj.printer("Bank has ran out of cash. Game Drawn.")
-            self.set_game_state(-2)
+            self.state = False
             return False
         else:
             return True
