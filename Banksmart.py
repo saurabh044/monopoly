@@ -1,5 +1,6 @@
 from Printer import Printer
-
+from MenuBox import MenuBox
+from MenuBox2 import MenuBox2
 
 class Transaction(object):
    
@@ -18,11 +19,37 @@ class Account(object):
         self.balance = balance
         self.transaction_statement = Printer()
         self.state = True
+        #                     0  1  2  3  4  5  6  7  8  9 10
+        self.players_stats = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                              0, 0, 0, 0, 0, 0, 0, 0]
+        #                     11 12 13 14 15 16 17 18
+                          #  [26, 20, 6, 5, 5, 5, 5, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        # 0 overall assets count
+        # 1 country count
+        # 2 util_count
+        # 3 red country count
+        # 4 green country count
+        # 5 blue country count
+        # 6 yellow country count
+        # 7 U1 count
+        # 8 U2 count
+        # 9 U3 count
+        # Mortgaged values
+        # 10 country count
+        # 11 util_count
+        # 12 red country count
+        # 13 green country count
+        # 14 blue country count
+        # 15 yellow country count
+        # 16 U1 count
+        # 17 U2 count
+        # 18 U3 count
         
-    def deposit(self, amount):
+        
+    def deposit(self, amount, msg=""):
         self.balance += amount
         
-    def withdraw(self, amount):
+    def withdraw(self, amount, msg=""):
         self.balance -= amount
     
     def isenoughbalance(self, amount):
@@ -32,31 +59,33 @@ class Account(object):
     
     def deactivate(self):
         self.state = False   
-    
-#     @property
-#     def id(self):
-#         if self._id == 0:
-#             return "Bank"
-#         else:
-#             return 'Player-%d' % self._id
-#         
-#     @id.setter
-#     def id(self, value):
-#         self._id = value
-#     
+     
     def set_statement_filename(self, fname):
         self.transaction_statement.set_log_file_name(fname)
         self.transaction_statement.file_only_printer("{: >60} {: >8} {: >8} {: >8}".format("Transaction Details",
                                                                                            "Debit", "Credit", "Balance"))
         
+    def statement_populate(self, msg, amount, type):      
+        if type == 0:
+            statement = "{: >60} {: >8} {: >8} {: >8}".format(msg, amount, "", self.balance)
+        else:
+            statement = "{: >60} {: >8} {: >8} {: >8}".format(msg, "", amount, self.balance)
+        self.transaction_statement.file_only_printer(statement)
+
+        
 class Banksmart(object):
     
-    def __init__(self, id):
+    def __init__(self, id, logPath):
         self.id = id
         self.asset_list = []
         self.accounts = [Account(0, "Bank")]
+        self.accounts[0].players_stats = [26, 20, 6, 5, 5, 5, 5, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.accounts[0].set_statement_filename("./business_game_logs/Bank_account_statement.txt")
-       
+        self.logPath = logPath
+        self.logObj = Printer(self.logPath)
+        self.PlayerBuyMenu = MenuBox("Buy Menu", self.logPath)
+        self.PlayerBuyMenu.addOption("Want to buy")
+        
     def add_players_accounts(self, player_count):
         for i in range(player_count):
             account_var = Account(i+1, "PL-%d" % (i+1))
@@ -66,13 +95,21 @@ class Banksmart(object):
     def get_players_balance(self, player_id):
         return self.accounts[player_id].balance
     
+    def bankrupt_a_player(self, player_id):
+        self.accounts[0].deposit(self.accounts[player_id].balance)
+        self.accounts[player_id].balance = 0
+        self.accounts[player_id].deactivate()
+        
+    def raise_building(self, player_id):
+        pass
+    
     def get_players_asset_value(self, player_id):
         val = 0
         for i in self.asset_list:
             if i.owner == player_id:
                 val += i.buy_price
         return val
-    
+        
     def get_owner_by_assetid(self, id):
         for i in self.asset_list:
             if i.board_loc == id:
@@ -83,6 +120,11 @@ class Banksmart(object):
         for i in self.asset_list:
             if i.board_loc == assetid:
                 i.owner = playerid
+                
+    def get_asset_by_assetid(self, asset_id):
+        for i in self.asset_list:
+            if i.board_loc == asset_id:
+                return i
     
     def get_buyprice_by_assetid(self, id):
         for i in self.asset_list:
@@ -185,6 +227,49 @@ class Banksmart(object):
             out += "U:%s" % utilityProperty
         out = "R:%d, G:%d, B:%d, Y:%d, U:%d ##" % (rc, gc, bc, yc, uc) + out
         return out   
+    
+    def sell_asset_to_player(self, player_id, asset_id):
+        asset = self.get_asset_by_assetid(asset_id)
+        if asset.owner == 0:
+            if self.accounts[player_id].isenoughbalance(asset.buy_price):
+                player_buyconsent = self.PlayerBuyMenu.auto_runMenu(1)  # This auto_runMenu statement is for simulation purpose.
+                if player_buyconsent == 1:
+                    self.accounts[player_id].withdraw(asset.buy_price, "Asset %s purchase from Bank" % asset.name)
+                    self.accounts[0].deposit(asset.buy_price, "Asset %s sale to %s" % (asset.name, player_id))
+                    asset.owner = player_id
+                    self.accounts[player_id].players_stats[0] += 1
+                    if asset.issite():
+                        self.accounts[player_id].players_stats[1] += 1
+                        self.accounts[player_id].players_stats[asset.color_grp+2] += 1
+                    else:
+                        self.accounts[player_id].players_stats[2] += 1
+                        self.accounts[player_id].players_stats[asset.pair_grp+6] += 1  
+                    self.logObj.printer("Puchase done")    
+                    return True 
+                else:
+                    self.logObj.printer("Player-%d not interested in purchase." % player_id)
+            else:
+                self.logObj.printer("Player-%d has not sufficient balance to buy." % player_id)
+                return False
+        elif asset.owner == player_id:
+            self.logObj.printer("You reached on your own property")
+        elif asset.owner < 10:
+            rent = self.get_current_rent_by_assetid(asset_id) 
+            if self.accounts[player_id].isenoughbalance(rent): 
+                self.accounts[player_id].withdraw(rent, "Asset %s rent to Player-%d" % (asset.name, asset.owner))
+                self.accounts[asset.owner].deposit(rent, "Asset %s rent from Player-%d" % (asset.name, player_id))               
+        else:
+            self.logObj.printer("You reached on a mortgaged property. No need to pay any rent.")            
+            return False               
+        
+    def mortgage_asset_of_player(self, player_id, asset_id):
+        pass
+    def add_building_to_country(self, player_id, asset_id):
+        pass
+
+        
+        
+        
     
     # 1. Rent payment ()
     # 2. Country Purchase (board_location)

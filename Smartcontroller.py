@@ -89,7 +89,7 @@ class Smartcontroller(object):
         self.PlayerBuyMenu = MenuBox("Buy Menu", self.logPath)
         self.PlayerBuyMenu.addOption("Want to buy")
         
-        self.logObj = Printer(log_path)
+        self.logObj = Printer(self.logPath)
         self.player_count = player_count
         self.players = []
         self.dice = Dice()
@@ -108,7 +108,7 @@ class Smartcontroller(object):
                                   "China", "Malaysia", "Singapore"]
         # key value array of Utility [boardPosition, buyValue, mortgageValue]
         self.utility_name_list = ["Waterways", "Satellite", "Airways", "Roadways", "Petroleum", "Railways"]
-        self.Banker = Banksmart(0)
+        self.Banker = Banksmart(0, self.logPath)
         # Initialize the bank cash reserve with $1000000
         self.Banker.process_request(Transaction(-1, 0, 12, 1000000, "Cash reserved to bank"))
         self.Banker.add_players_accounts(self.player_count)
@@ -207,24 +207,7 @@ class Smartcontroller(object):
                 else:
                     pass
             else:
-                if self.check_property_availability_status(target_loc):
-                    if self.check_player_ability_to_buy_property(turnplayer):
-                        player_buyconsent = self.PlayerBuyMenu.auto_runMenu(1)  # This auto_runMenu statement is for simulation purpose.
-                        if player_buyconsent == 1:
-                            self.logObj.printer("Purchase Done.")
-                            self.sell_property_to_player(turnplayer)
-                        else:
-                            self.logObj.printer("Player-%d is not interested in this property." % turnplayer)
-                    else:
-                        self.logObj.printer("Player-%d doesn't have enough cash to buy this property." % turnplayer.id)
-                elif ownerID == turnplayer.id:
-                    self.logObj.printer("You reached on your own property.")
-                    pass
-                elif 0 < ownerID < 5:
-                    self.Banker.process_request(Transaction(turnplayer.id, ownerID, 1, turnplayer.board_pos, "rent payment"))
-                else:
-                    pass
-
+                self.Banker.sell_asset_to_player(turnplayer.id, turnplayer.board_pos)
             self.check_players_with_negative_cash()
             BankCashCheck = self.check_bank_with_negative_cash(0)
             self.display_board()
@@ -617,14 +600,8 @@ class Smartcontroller(object):
     def set_game_state(self, state):
         self.gameState = state  # only 0, 1, -1 allowed in input. 0: inactive, 1: active, -1: finished , -2: Draw
 
-    def get_game_state(self):
-        return self.gameState
-
     def get_winner_name(self):
         return self.Players[0].getPlayerName()
-
-    def printing(self, inp_text):
-        self.logObj.printer(inp_text)
 
     def check_bank_with_negative_cash(self, amount):
         if self.Banker.accounts[0].balance < amount:
@@ -710,7 +687,7 @@ class Smartcontroller(object):
                 self.logObj.printer("Player-%d is not able to pay the amount as bankrupt and deposited all the assets/cash to bank.\nBye!!!" % player_id)
                 self.remove_player_from_game(player_id)
                 if len(self.Players) == 1:
-                    self.set_game_state(-1)
+                    self.state = False
                 return False
         else:
             return True
@@ -813,3 +790,23 @@ class Smartcontroller(object):
                 self.logObj.printer("Not interested in buying")
         else:
             self.logObj.printer("You do not have any eligible site remaining with you to build property upon!")
+
+    def disp_all_players_assets_counter(self):
+        for i in self.Banker.accounts:
+            self.logObj.printer(i.players_stats)
+        
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+            
+        
