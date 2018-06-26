@@ -10,9 +10,9 @@ fH.close()
 p = Printer(logPath)
 # initial Game Start Menu
 gameStartMenu = MenuBox("Start Game:", logPath)
-gameStartMenu.addOption("Two Player ")
-gameStartMenu.addOption("Three Player ")
-gameStartMenu.addOption("Four Player ")
+gameStartMenu.addOption("2 Player ")
+gameStartMenu.addOption("3 Player ")
+gameStartMenu.addOption("4 Player ")
 optionRecv = gameStartMenu.auto_runMenu(3) # simulation
 #optionRecv = 3 # simulation line
 
