@@ -28,5 +28,5 @@ if optionRecv != 4:
         GameController.next_move(chanceCount)
         optionGameRecv = GameController.state
 else:
-    p.printer("Exiting.")
+    p.printer("Exiting.")  
 
