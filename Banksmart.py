@@ -48,9 +48,11 @@ class Account(object):
         
     def deposit(self, amount, msg=""):
         self.balance += amount
+        self.statement_populate(msg, amount, 1)
         
     def withdraw(self, amount, msg=""):
         self.balance -= amount
+        self.statement_populate(msg, amount, 0)
     
     def isenoughbalance(self, amount):
         if self.balance >= amount:
@@ -101,6 +103,9 @@ class Banksmart(object):
         self.accounts[player_id].deactivate()
         
     def raise_building(self, player_id):
+        pass
+    
+    def raise_cash(self, player_id, min_amount):
         pass
     
     def get_players_asset_value(self, player_id):
@@ -231,6 +236,7 @@ class Banksmart(object):
     def sell_asset_to_player(self, player_id, asset_id):
         asset = self.get_asset_by_assetid(asset_id)
         if asset.owner == 0:
+            self.logObj.printer("You reached on %s" % asset.name)
             if self.accounts[player_id].isenoughbalance(asset.buy_price):
                 player_buyconsent = self.PlayerBuyMenu.auto_runMenu(1)  # This auto_runMenu statement is for simulation purpose.
                 if player_buyconsent == 1:
@@ -244,33 +250,34 @@ class Banksmart(object):
                     else:
                         self.accounts[player_id].players_stats[2] += 1
                         self.accounts[player_id].players_stats[asset.pair_grp+6] += 1  
-                    self.logObj.printer("Puchase done")    
-                    return True 
+                    self.logObj.printer("Purchase done")    
+                    return 0 
                 else:
                     self.logObj.printer("Player-%d not interested in purchase." % player_id)
             else:
                 self.logObj.printer("Player-%d has not sufficient balance to buy." % player_id)
-                return False
         elif asset.owner == player_id:
             self.logObj.printer("You reached on your own property")
         elif asset.owner < 10:
             rent = self.get_current_rent_by_assetid(asset_id) 
-            if self.accounts[player_id].isenoughbalance(rent): 
-                self.accounts[player_id].withdraw(rent, "Asset %s rent to Player-%d" % (asset.name, asset.owner))
-                self.accounts[asset.owner].deposit(rent, "Asset %s rent from Player-%d" % (asset.name, player_id))               
+            self.logObj.printer("You reached on %s which attracts rent of $%d" % (asset.name, rent))
+            if self.accounts[player_id].isenoughbalance(rent) is False:
+                if self.raise_cash(player_id, rent):
+                    pass
+                else:
+                    return -1 # return -1 for removing the player                         
+            self.accounts[player_id].withdraw(rent, "Asset %s rent to Player-%d" % (asset.name, asset.owner))
+            self.accounts[asset.owner].deposit(rent, "Asset %s rent from Player-%d" % (asset.name, player_id)) 
+            return 1 
         else:
             self.logObj.printer("You reached on a mortgaged property. No need to pay any rent.")            
-            return False               
+        return 1             
         
     def mortgage_asset_of_player(self, player_id, asset_id):
         pass
     def add_building_to_country(self, player_id, asset_id):
         pass
 
-        
-        
-        
-    
     # 1. Rent payment ()
     # 2. Country Purchase (board_location)
     # 3. Utility Purchase (board_location)
@@ -292,83 +299,48 @@ class Banksmart(object):
         payee_acc_id = transaction.payee
         recep_acc_id = transaction.recipient 
         data = transaction.detail
+        msg = transaction.msg
         if transaction.type in [11, 13, 14]:
             if self.accounts[payee_acc_id].isenoughbalance(data):
-                self.accounts[payee_acc_id].withdraw(data)
-                self.accounts[recep_acc_id].deposit(data)
-                self.statement_populate(0, transaction, data)
-                self.statement_populate(1, transaction, data)
+                self.accounts[payee_acc_id].withdraw(data, msg)
+                self.accounts[recep_acc_id].deposit(data, msg)
                 return True
             return False                
         if transaction.type == 12:
-            self.accounts[recep_acc_id].deposit(data)
-            self.statement_populate(1, transaction, data)
+            self.accounts[recep_acc_id].deposit(data, msg)
             return True  
         if transaction.type in [2, 3]:
             if self.accounts[payee_acc_id].isenoughbalance(self.get_buyprice_by_assetid(data)):
-                self.accounts[payee_acc_id].withdraw(self.get_buyprice_by_assetid(data))
-                self.accounts[recep_acc_id].deposit(self.get_buyprice_by_assetid(data))
-                self.statement_populate(0, transaction, self.get_buyprice_by_assetid(data))
-                self.statement_populate(1, transaction, self.get_buyprice_by_assetid(data))       
+                self.accounts[payee_acc_id].withdraw(self.get_buyprice_by_assetid(data), msg)
+                self.accounts[recep_acc_id].deposit(self.get_buyprice_by_assetid(data), msg)
                 return True         
             else:
                 return False
         if transaction.type == 1:
             if self.accounts[payee_acc_id].isenoughbalance(self.get_current_rent_by_assetid(data)):
-                self.accounts[payee_acc_id].withdraw(self.get_current_rent_by_assetid(data))
-                self.accounts[recep_acc_id].deposit(self.get_current_rent_by_assetid(data))
-                self.statement_populate(0, transaction, self.get_current_rent_by_assetid(data))
-                self.statement_populate(1, transaction, self.get_current_rent_by_assetid(data))       
+                self.accounts[payee_acc_id].withdraw(self.get_current_rent_by_assetid(data), msg)
+                self.accounts[recep_acc_id].deposit(self.get_current_rent_by_assetid(data), msg)   
                 return True         
             else:
                 return False
-        if transaction.type == 15:
-            customduty = self.get_players_countries(payee_acc_id) * 100
-            if customduty > 1000:
-                customduty = 1000
+        if transaction.type in [15, 16]:
+            factor = 17 - transaction.type
+            customduty = self.get_players_countries(payee_acc_id) * 50 * factor
+            if customduty > 500 * factor:
+                customduty = 500 * factor
             if self.accounts[payee_acc_id].isenoughbalance(customduty):
-                self.accounts[payee_acc_id].withdraw(customduty)
-                self.accounts[recep_acc_id].deposit(customduty)
-                self.statement_populate(0, transaction, customduty)
-                self.statement_populate(1, transaction, customduty)
+                self.accounts[payee_acc_id].withdraw(customduty, msg)
+                self.accounts[recep_acc_id].deposit(customduty, msg)
                 return True
             return False  
-                
-        if transaction.type == 16:
-            travelduty = self.get_players_countries(payee_acc_id) * 50
-            if travelduty > 500:
-                travelduty = 500
-            if self.accounts[payee_acc_id].isenoughbalance(travelduty):
-                self.accounts[payee_acc_id].withdraw(travelduty)
-                self.accounts[recep_acc_id].deposit(travelduty)
-                self.statement_populate(0, transaction, travelduty)
-                self.statement_populate(1, transaction, travelduty)
-                return True
-            return False 
-        
         if transaction.type == 5:
             if data == 7:
                 amount = self.get_players_countries(recep_acc_id) * 100
                 for i in self.accounts:
                     if i.id != recep_acc_id:
                         if i.isenoughbalance(amount):
-                            i.withdraw(amount)
-                            self.accounts[recep_acc_id].deposit(amount)
-                            self.statement_populate(0, Transaction(i.id, recep_acc_id, 0, 0, transaction.msg), amount)
-                            self.statement_populate(1, Transaction(i.id, recep_acc_id, 0, 0, transaction.msg), amount)
-            
-    def statement_populate(self, trans_type, trans_data, amount):
-        if trans_type == 0:
-            msg = trans_data.msg + ' to ' + self.accounts[trans_data.recipient].name
-            statement = "{: >60} {: >8} {: >8} {: >8}".format(msg, amount, "", self.accounts[trans_data.payee].balance)
-            self.accounts[trans_data.payee].transaction_statement.file_only_printer(statement)
-        else:
-            msg = trans_data.msg + ' from ' + self.accounts[trans_data.payee].name
-            statement = "{: >60} {: >8} {: >8} {: >8}".format(msg, "", amount, self.accounts[trans_data.recipient].balance)
-            self.accounts[trans_data.recipient].transaction_statement.file_only_printer(statement)        
-            
-        
-        
+                            i.withdraw(amount, msg)
+                            self.accounts[recep_acc_id].deposit(amount, msg)        
         
         
         

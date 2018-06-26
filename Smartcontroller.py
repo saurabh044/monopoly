@@ -186,7 +186,6 @@ class Smartcontroller(object):
             target_loc = turnplayer.board_pos
             if iscrossover:
                 self.Banker.process_request(Transaction(0, turnplayer.id, 13, Smartcontroller.crossover_amount, 'Crossover payment'))
-            self.print_movement_info(turnplayer)
             ownerID = self.get_property_owner_where_player_standing(turnplayer)
             if ownerID == -1:
                 player_pos = self.get_board_position_where_player_standing(turnplayer)
@@ -207,11 +206,19 @@ class Smartcontroller(object):
                 else:
                     pass
             else:
-                self.Banker.sell_asset_to_player(turnplayer.id, turnplayer.board_pos)
+                result = self.Banker.sell_asset_to_player(turnplayer.id, turnplayer.board_pos)
+                if result == 0:
+                    assets_board_locations[turnplayer.board_pos] = "|P%d|" % turnplayer.id
+                elif result == -1:
+                    self.remove_player_from_game(turnplayer.id)
+                else:
+                    pass
             self.check_players_with_negative_cash()
             BankCashCheck = self.check_bank_with_negative_cash(0)
             self.display_board()
             self.print_all_player_assets_table()
+            for i in self.Banker.accounts:
+                self.logObj.printer(i.players_stats)
             if self.state:
                 optionPlayerRecv = 0
                 while optionPlayerRecv != 1:
@@ -329,34 +336,6 @@ class Smartcontroller(object):
                 return self.country_objs[self.country_util_name_id_dict[board_country_util_name]]
         else:
             return None
-
-    def sell_property_to_player(self, turnplayer):
-        #board_pos = self.get_player_by_its_ID(PlayerID).getPlayerPosition()
-        if self.Banker.get_owner_by_assetid(turnplayer.board_pos) == 0:
-            self.Banker.process_request(Transaction(turnplayer.id, 0, 2, turnplayer.board_pos, 'asset purchase'))
-            self.Banker.set_owner_to_asset(turnplayer.board_pos, turnplayer.id)
-            assets_board_locations[turnplayer.board_pos] = "|P" + str(turnplayer.id) + "|"
-        else:
-            self.logObj.printer("Property already sold.")
-
-    def check_property_availability_status(self, location):
-        if location in assets_board_locations:
-            if self.Banker.get_owner_by_assetid(location) == 0:
-                return True
-            else:
-                return False
-
-    def check_property_buy_price(self, location):
-        if location in assets_board_locations:
-            return self.Banker.get_buyprice_by_assetid(location)
-        else:
-            return 0
-
-    def check_player_ability_to_buy_property(self, player):
-        if self.check_property_buy_price(player.board_pos) < self.Banker.get_players_balance(player.id):
-            return True
-        else:
-            return False
 
     def get_property_owner_where_player_standing(self, playerobj):
         if playerobj.board_pos in assets_board_locations:
@@ -720,14 +699,6 @@ class Smartcontroller(object):
                     self.Banker.asset_group_counter[self.Banker.mortgage_ownership[i].get_group()] += 1
         for i in tmp_asset_list:
             self.Banker.mortgage_ownership.remove(i)
-
-    def print_movement_info(self, player_id):
-        location_name = self.get_position_name_where_player_standing(player_id)
-        location_rent = self.get_property_rent_where_player_standing(player_id)
-        if location_rent != -1:
-            self.logObj.printer("You reached on %s which attracts rent of $%d." % (location_name, location_rent))
-        else:
-            self.logObj.printer("You reached on %s." % location_name)
 
     def get_winner(self):
         winner = self.Players[0]
