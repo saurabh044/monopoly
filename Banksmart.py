@@ -312,18 +312,14 @@ class Banksmart(object):
                     if i.issite():
                         if i.owner == player_id and i.color_grp == asset.color_grp:
                             prop_cnt_list.append(i.prop_count)
-                print prop_cnt_list
-                
-                
-                
-                        
-                
-                        
-                
-            
-        
-        
-                
+                fl_list = [True if i == min(prop_cnt_list) else False for i in prop_cnt_list]
+                c = 0
+                for i in self.asset_list:
+                    if i.issite():
+                        if i.owner == player_id and i.color_grp == asset.color_grp:
+                            i.prop_vacancy = fl_list[c]
+                            c += 1       
+                      
     def process_request(self, transaction):
         payee_acc_id = transaction.payee
         recep_acc_id = transaction.recipient 
