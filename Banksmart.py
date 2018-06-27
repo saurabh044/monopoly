@@ -88,6 +88,7 @@ class Banksmart(object):
         self.logObj = Printer(self.logPath)
         self.PlayerBuyMenu = MenuBox("Buy Menu", self.logPath)
         self.PlayerBuyMenu.addOption("Want to buy")
+        self.PlayerMortMenu = MenuBox('Cash Raise Menu', self.logPath)
         
     def add_players_accounts(self, player_count):
         for i in range(player_count):
@@ -102,13 +103,29 @@ class Banksmart(object):
         self.accounts[0].deposit(self.accounts[player_id].balance)
         self.accounts[player_id].balance = 0
         self.accounts[player_id].deactivate()
-        
-    def raise_building(self, player_id):
-        pass
-    
+           
     def raise_cash(self, player_id, min_amount):
-        pass
-    
+        while self.accounts[player_id].balance < min_amount:
+            player_props = []
+            MortMenu = MenuBox('Cash Raise Menu', self.logPath)
+            for i in self.asset_list:
+                if i.owner == player_id:
+                    player_props.append(i)
+            for i in player_props:
+                if i.prop_count == 4:
+                    pname = "(3 House, 1 Hotel)"
+                elif 1 <= i.prop_count < 4:
+                    pname = "(%d House)" % i.prop_count
+                else:
+                    pname = ""
+                MortMenu.addOption(i.name + " " + pname ) 
+            opt = MortMenu.runMenu()
+            print "you selected " + str(opt)
+            if player_props[opt-1].prop_count > 0:
+                self.get_building_from_player(player_id, player_props[opt-1].board_loc)
+            else:
+                self.mortgage_asset_of_player(player_id, player_props[opt-1].board_loc)
+                
     def get_players_asset_value(self, player_id):
         val = 0
         for i in self.asset_list:
@@ -269,48 +286,67 @@ class Banksmart(object):
             self.logObj.printer("You reached on a mortgaged property. No need to pay any rent.")            
         return 1             
         
+    
     def sell_building_to_player(self, player_id, asset_id):
         asset = self.get_asset_by_assetid(asset_id)
-        if asset.prop_vacancy:
-            if self.accounts[player_id].isenoughbalance(asset.prop_price):
-                try:
-                    asset.prop_count += 1
-                    self.accounts[player_id].withdraw(asset.prop_price, "Building purchase on %s" % asset.name)
-                    self.accounts[0].deposit(asset.prop_price, "Building sale to Player-%d" % player_id)
-                    self.prop_vacancy_set(player_id, asset)
-                    self.prop_sell_set(player_id, asset)
-                    self.logObj.printer("Building purchase done.") 
-                except ValueError:
-                    self.logObj.printer("You can not raise more buildings on %s. Already 4." % asset.name)            
+        if asset.owner == player_id:
+            if asset.prop_vacancy:
+                if self.accounts[player_id].isenoughbalance(asset.prop_price):
+                    try:
+                        asset.prop_count += 1
+                        self.accounts[player_id].withdraw(asset.prop_price, "Building purchase on %s" % asset.name)
+                        self.accounts[0].deposit(asset.prop_price, "Building sale to Player-%d" % player_id)
+                        self.prop_vacancy_set(player_id, asset)
+                        self.prop_sell_set(player_id, asset)
+                        self.logObj.printer("Building purchase done. Remaining balance = $%d" % self.accounts[player_id].balance) 
+                    except ValueError:
+                        self.logObj.printer("You can not raise more buildings on %s. Already 4." % asset.name)            
+                else:
+                    self.logObj.printer("You don't have sufficient balance to raise building on %s" % asset.name)
             else:
-                self.logObj.printer("You don't have sufficient balance to raise building on %s" % asset.name)
+                self.logObj.printer("No more building allowed on %s. It has either 4 buildings or more building " \
+                                    "than your other sites of same color." % asset.name) 
+        elif asset.owner == player_id + 10:
+            self.logObj.printer("You can not raise building on your mortgaged property (%s)." % asset.name) 
         else:
-            self.logObj.printer("No more building allowed on %s. It has either 4 buildings or more building " \
-                                "than your other sites of same color." % asset.name) 
+            self.logObj.printer("You can not raise building on property (%s) as not owner." % asset.name)
             
+           
     def get_building_from_player(self, player_id, asset_id):
         asset = self.get_asset_by_assetid(asset_id)
-        sell_price = asset.prop_price / 2
-        if asset.prop_sell:
-            if self.accounts[0].isenoughbalance(sell_price):
-                try:
-                    asset.prop_count -= 1
-                    self.accounts[0].withdraw(sell_price, "Building re-purchase from Player-%d" % player_id)
-                    self.accounts[player_id].deposit(sell_price, "Building sale from %s" % asset.name)
-                    self.prop_vacancy_set(player_id, asset)
-                    self.prop_sell_set(player_id, asset)
-                    self.logObj.printer("Building sell done.")
-                except ValueError:
-                    self.logObj.printer("You can not sell more buildings on %s. Already 0." % asset.name)            
+        if asset.owner == player_id:
+            sell_price = asset.prop_price / 2
+            if asset.prop_sell:
+                if self.accounts[0].isenoughbalance(sell_price):
+                    try:
+                        asset.prop_count -= 1
+                        self.accounts[0].withdraw(sell_price, "Building re-purchase from Player-%d" % player_id)
+                        self.accounts[player_id].deposit(sell_price, "Building sale from %s" % asset.name)
+                        self.prop_vacancy_set(player_id, asset)
+                        self.prop_sell_set(player_id, asset)
+                        self.logObj.printer("Building sell done. Remaining balance = $%d" % self.accounts[player_id].balance)
+                    except ValueError:
+                        self.logObj.printer("You can not sell more buildings on %s. Already 0." % asset.name)            
+                else:
+                    self.logObj.printer("Bank doesn't have sufficient balance to purchase your building on %s" % asset.name)
             else:
-                self.logObj.printer("Bank doesn't have sufficient balance to purchase your building on %s" % asset.name)
+                self.logObj.printer("You can not sell buildings on %s as it has no building or lesser buildings " \
+                                    "than your other properties of same color." % asset.name)   
         else:
-            self.logObj.printer("You can not sell buildings on %s as it has no building or lesser buildings " \
-                                "than your other properties of same color." % asset.name)   
-             
+            self.logObj.printer("You can not sell buildings on %s as not owner." % asset.name)     
+            
     def mortgage_asset_of_player(self, player_id, asset_id):
-        pass
-
+        asset = self.get_asset_by_assetid(asset_id)
+        mort_amount = asset.mortgage_val
+        if self.accounts[0].isenoughbalance(mort_amount):
+            asset.owner = player_id + 10
+            asset.prop_vacancy = False
+            self.accounts[0].withdraw(mort_amount, "Asset %s mortgage from Player-%d" % (asset.name, player_id))
+            self.accounts[player_id].deposit(mort_amount, "Asset %s mortgaged to bank" % asset.name)
+            self.logObj.printer("Asset mortgage done. Remaining balance = $%d" % self.accounts[player_id].balance)
+        else:
+            self.logObj.printer("Bank doesn't have sufficient balance to give mortgage value of %s" % asset.name)
+    
 
     # 1. Rent payment ()
     # 2. Country Purchase (board_location)
