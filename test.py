@@ -75,7 +75,7 @@ b.sell_building_to_player(1,6)
 
 print_asset()
 print b.accounts[1].balance
-#b.raise_cash(1, 80000)
+b.raise_cash(1, 85000)
 
 b.sell_building_to_player(1,12)
 print_asset()

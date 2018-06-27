@@ -106,11 +106,13 @@ class Banksmart(object):
            
     def raise_cash(self, player_id, min_amount):
         while self.accounts[player_id].balance < min_amount:
-            player_props = []
-            MortMenu = MenuBox('Cash Raise Menu', self.logPath)
+            player_props = []            
             for i in self.asset_list:
                 if i.owner == player_id:
                     player_props.append(i)
+            if len(player_props) == 0:
+                return False
+            MortMenu = MenuBox('Cash Raise Menu', self.logPath)
             for i in player_props:
                 if i.prop_count == 4:
                     pname = "(3 House, 1 Hotel)"
@@ -125,7 +127,8 @@ class Banksmart(object):
                 self.get_building_from_player(player_id, player_props[opt-1].board_loc)
             else:
                 self.mortgage_asset_of_player(player_id, player_props[opt-1].board_loc)
-                
+        return True
+           
     def get_players_asset_value(self, player_id):
         val = 0
         for i in self.asset_list:
