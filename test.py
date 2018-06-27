@@ -57,39 +57,91 @@ for i in utility_list:
                                      utility_list[i][5]))
 
 def print_asset():
-    x = 0
-    for i in b.asset_list:
-        if i.issite():
-            print i
-            x += 1
-            if x == 5:
-                x = 0
-                print
-            
+    print "current site list\n-----------------"
+    for c in range(1,5):
+        for i in b.asset_list:
+            if i.issite():
+                if i.color_grp == c:
+                    print i
+        print 
+
+b.sell_asset_to_player(1, 2)
 print_asset()
 
-b.sell_asset_to_player(1, 11)
+b.sell_asset_to_player(1, 6)
 print_asset()
 
-b.sell_asset_to_player(1, 16)
+b.sell_asset_to_player(1, 12)
 print_asset()
 
-b.sell_asset_to_player(1, 27)
+b.sell_asset_to_player(1, 15)
 print_asset()
 
+b.sell_building_to_player(1,2)
+print_asset()
 
+b.sell_building_to_player(1,6)
+print_asset()
 
+b.sell_building_to_player(1,12)
+print_asset()
 
+b.sell_building_to_player(1,15)
+print_asset()
 
+b.sell_building_to_player(1,2)
+print_asset()
 
+b.sell_building_to_player(1,6)
+print_asset()
 
+b.sell_building_to_player(1,12)
+print_asset()
 
+b.sell_building_to_player(1,15)
+print_asset()
 
+b.sell_building_to_player(1,2)
+print_asset()
 
+b.sell_building_to_player(1,6)
+print_asset()
 
+b.sell_building_to_player(1,12)
+print_asset()
 
+b.sell_building_to_player(1,15)
+print_asset()
 
+b.sell_building_to_player(1,2)
+print_asset()
 
+b.sell_building_to_player(1,6)
+print_asset()
+
+b.sell_building_to_player(1,12)
+print_asset()
+
+b.sell_building_to_player(1,15)
+print_asset()
+
+b.sell_building_to_player(1,2)
+print_asset()
+
+b.sell_asset_to_player(1, 18)
+print_asset()
+
+b.sell_building_to_player(1,18)
+print_asset()
+
+b.sell_building_to_player(1,18)
+print_asset()
+b.sell_building_to_player(1,18)
+print_asset()
+b.sell_building_to_player(1,18)
+print_asset()
+b.sell_building_to_player(1,18)
+print_asset()
 
 
 

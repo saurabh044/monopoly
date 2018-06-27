@@ -1,6 +1,7 @@
 from Printer import Printer
 from MenuBox import MenuBox
 from MenuBox2 import MenuBox2
+from pyasn1.type.constraint import ValueRangeConstraint
 
 class Transaction(object):
    
@@ -268,10 +269,43 @@ class Banksmart(object):
             self.logObj.printer("You reached on a mortgaged property. No need to pay any rent.")            
         return 1             
         
+    def sell_building_to_player(self, player_id, asset_id):
+        asset = self.get_asset_by_assetid(asset_id)
+        if asset.prop_vacancy:
+            if self.accounts[player_id].isenoughbalance(asset.prop_price):
+                try:
+                    asset.prop_count += 1
+                    self.accounts[player_id].withdraw(asset.prop_price, "Building purchase on %s" % asset.name)
+                    self.accounts[0].deposit(asset.prop_price, "Building sale to Player-%d" % player_id)
+                    self.prop_vacancy_set(player_id, asset)
+                except ValueError:
+                    self.logObj.printer("You can not raise more buildings on %s. Already 4." % asset.name)            
+            else:
+                self.logObj.printer("You don't have sufficient balance to raise building on %s" % asset.name)
+        else:
+            self.logObj.printer("You can not add buildings on %s as it has more buildings" \
+                                "than your other properties of same color group." % asset.name) 
+            
+    def get_building_from_player(self, player_id, asset_id):
+        asset = self.get_asset_by_assetid(asset_id)
+        if asset.prop_vacancy:
+            if self.accounts[0].isenoughbalance(asset.prop_price/2):
+                try:
+                    asset.prop_count -= 1
+                    self.accounts[0].withdraw(asset.prop_price/2, "Building re-purchase from Player-%d" % player_id)
+                    self.accounts[player_id].deposit(asset.prop_price/2, "Building sale from %s" % asset.name)
+                    self.prop_vacancy_set(player_id, asset)
+                except ValueError:
+                    self.logObj.printer("You can not sell more buildings on %s. Already 0." % asset.name)            
+            else:
+                self.logObj.printer("You don't have sufficient balance to raise building on %s" % asset.name)
+        else:
+            self.logObj.printer("You can not add buildings on %s as it has more buildings" \
+                                "than your other properties of same color group." % asset.name)   
+             
     def mortgage_asset_of_player(self, player_id, asset_id):
         pass
-    def add_building_to_country(self, player_id, asset_id):
-        pass
+
 
     # 1. Rent payment ()
     # 2. Country Purchase (board_location)
