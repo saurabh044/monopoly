@@ -243,13 +243,8 @@ class Banksmart(object):
                     self.accounts[player_id].withdraw(asset.buy_price, "Asset %s purchase from Bank" % asset.name)
                     self.accounts[0].deposit(asset.buy_price, "Asset %s sale to %s" % (asset.name, player_id))
                     asset.owner = player_id
-                    self.accounts[player_id].players_stats[0] += 1
-                    if asset.issite():
-                        self.accounts[player_id].players_stats[1] += 1
-                        self.accounts[player_id].players_stats[asset.color_grp+2] += 1
-                    else:
-                        self.accounts[player_id].players_stats[2] += 1
-                        self.accounts[player_id].players_stats[asset.pair_grp+6] += 1  
+                    self.prop_vacancy_set(player_id, asset)
+                    self.stats_update(player_id, asset)
                     self.logObj.printer("Purchase done")    
                     return 0 
                 else:
@@ -294,7 +289,41 @@ class Banksmart(object):
     # 14. Fine Payment (amount)
     # 15. Custom Duty ()
     # 16. Travelling Duty ()
+    
+    def stats_update(self, player_id, asset):
+        self.accounts[player_id].players_stats[0] += 1
+        if asset.issite():
+            self.accounts[player_id].players_stats[1] += 1
+            self.accounts[player_id].players_stats[asset.color_grp+2] += 1
+        else:
+            self.accounts[player_id].players_stats[2] += 1
+            self.accounts[player_id].players_stats[asset.pair_grp+6] += 1  
+            
+    def prop_vacancy_set(self, player_id, asset):
+        if asset.issite():
+            col_grp_count = 0 
+            for i in self.asset_list:
+                if i.issite():
+                    if i.owner == player_id and i.color_grp == asset.color_grp:
+                        col_grp_count += 1
+            if col_grp_count >= 3:
+                prop_cnt_list = []
+                for i in self.asset_list:
+                    if i.issite():
+                        if i.owner == player_id and i.color_grp == asset.color_grp:
+                            prop_cnt_list.append(i.prop_count)
+                print prop_cnt_list
+                
+                
+                
+                        
+                
+                        
+                
+            
         
+        
+                
     def process_request(self, transaction):
         payee_acc_id = transaction.payee
         recep_acc_id = transaction.recipient 

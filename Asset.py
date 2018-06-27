@@ -18,6 +18,7 @@ class Country(Asset):
         self.prop_count = 0
         self.current_rent = self.rent
         self.color_grp = grp
+        self.prop_vacancy = False
     
     def issite(self):
         return True
@@ -51,6 +52,12 @@ class Country(Asset):
             prefix = ""
         return self.name + prefix
             
+            
+    def __str__(self):
+        return "%d-%s:%d,%d,%s,%d,%d,%d,%d,%d,%d,%d" % (self.prop_count, self.prop_vacancy, self.owner,
+                                                        self.board_loc, self.name, self.buy_price,
+                       self.mortgage_val, self.rent, self.prop_price,
+                       self.prop_rent, self.color_grp, self.current_rent)
         
 class Utility(Asset):
     def __init__(self, board_loc, name, buy_price, mortgage_value, rent, pair_rent, grp):
@@ -64,3 +71,9 @@ class Utility(Asset):
     
     def isutil(self):
         return True
+    
+    def __str__(self):
+        return "%d,%s,%d,%d,%d,%d,%d,%d,%d" % (self.board_loc, self.name, self.buy_price,
+                       self.mortgage_val, self.rent, self.current_rent, self.pair_rent,
+                       self.owner, self.pair_grp)
+        
