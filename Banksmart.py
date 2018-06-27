@@ -278,30 +278,35 @@ class Banksmart(object):
                     self.accounts[player_id].withdraw(asset.prop_price, "Building purchase on %s" % asset.name)
                     self.accounts[0].deposit(asset.prop_price, "Building sale to Player-%d" % player_id)
                     self.prop_vacancy_set(player_id, asset)
+                    self.prop_sell_set(player_id, asset)
+                    self.logObj.printer("Building purchase done.") 
                 except ValueError:
                     self.logObj.printer("You can not raise more buildings on %s. Already 4." % asset.name)            
             else:
                 self.logObj.printer("You don't have sufficient balance to raise building on %s" % asset.name)
         else:
-            self.logObj.printer("You can not add buildings on %s as it has more buildings" \
-                                "than your other properties of same color group." % asset.name) 
+            self.logObj.printer("No more building allowed on %s. It has either 4 buildings or more building " \
+                                "than your other sites of same color." % asset.name) 
             
     def get_building_from_player(self, player_id, asset_id):
         asset = self.get_asset_by_assetid(asset_id)
-        if asset.prop_vacancy:
-            if self.accounts[0].isenoughbalance(asset.prop_price/2):
+        sell_price = asset.prop_price / 2
+        if asset.prop_sell:
+            if self.accounts[0].isenoughbalance(sell_price):
                 try:
                     asset.prop_count -= 1
-                    self.accounts[0].withdraw(asset.prop_price/2, "Building re-purchase from Player-%d" % player_id)
-                    self.accounts[player_id].deposit(asset.prop_price/2, "Building sale from %s" % asset.name)
+                    self.accounts[0].withdraw(sell_price, "Building re-purchase from Player-%d" % player_id)
+                    self.accounts[player_id].deposit(sell_price, "Building sale from %s" % asset.name)
                     self.prop_vacancy_set(player_id, asset)
+                    self.prop_sell_set(player_id, asset)
+                    self.logObj.printer("Building sell done.")
                 except ValueError:
                     self.logObj.printer("You can not sell more buildings on %s. Already 0." % asset.name)            
             else:
-                self.logObj.printer("You don't have sufficient balance to raise building on %s" % asset.name)
+                self.logObj.printer("Bank doesn't have sufficient balance to purchase your building on %s" % asset.name)
         else:
-            self.logObj.printer("You can not add buildings on %s as it has more buildings" \
-                                "than your other properties of same color group." % asset.name)   
+            self.logObj.printer("You can not sell buildings on %s as it has no building or lesser buildings " \
+                                "than your other properties of same color." % asset.name)   
              
     def mortgage_asset_of_player(self, player_id, asset_id):
         pass
@@ -346,13 +351,28 @@ class Banksmart(object):
                     if i.issite():
                         if i.owner == player_id and i.color_grp == asset.color_grp:
                             prop_cnt_list.append(i.prop_count)
-                fl_list = [True if i == min(prop_cnt_list) else False for i in prop_cnt_list]
+                fl_list = [True if i == min(prop_cnt_list) and min(prop_cnt_list) != 4 else False for i in prop_cnt_list]
                 c = 0
                 for i in self.asset_list:
                     if i.issite():
                         if i.owner == player_id and i.color_grp == asset.color_grp:
                             i.prop_vacancy = fl_list[c]
                             c += 1       
+                
+    def prop_sell_set(self, player_id, asset):
+        if asset.issite():
+            prop_cnt_list = []
+            for i in self.asset_list:
+                if i.issite():
+                    if i.owner == player_id and i.color_grp == asset.color_grp:
+                        prop_cnt_list.append(i.prop_count)
+            fl_list = [True if i == max(prop_cnt_list) and max(prop_cnt_list) != 0 else False for i in prop_cnt_list]
+            c = 0
+            for i in self.asset_list:
+                if i.issite():
+                    if i.owner == player_id and i.color_grp == asset.color_grp:
+                        i.prop_sell = fl_list[c]
+                        c += 1       
                       
     def process_request(self, transaction):
         payee_acc_id = transaction.payee

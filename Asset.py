@@ -19,6 +19,7 @@ class Country(Asset):
         self.current_rent = self.rent
         self.color_grp = grp
         self.prop_vacancy = False
+        self.prop_sell = False
     
     def issite(self):
         return True
@@ -38,8 +39,10 @@ class Country(Asset):
                 self.current_rent = self.prop_rent * value
             elif value == 4:
                 self.current_rent = self.prop_rent * 3 + 1000
+                self.prop_vacancy = False
             else:
                 self.current_rent = self.rent
+                self.prop_sell = False
         else:
             raise ValueError
         
@@ -54,7 +57,7 @@ class Country(Asset):
             
             
     def __str__(self):
-        return "%d-%s:%d,%d,%s,%d,%d,%d,%d,%d,%d,%d" % (self.prop_count, self.prop_vacancy, self.owner,
+        return "%d-%s--%s:%d,%d,%s,%d,%d,%d,%d,%d,%d,%d" % (self.prop_count, self.prop_vacancy, self.prop_sell, self.owner,
                                                         self.board_loc, self.name, self.buy_price,
                        self.mortgage_val, self.rent, self.prop_price,
                        self.prop_rent, self.color_grp, self.current_rent)

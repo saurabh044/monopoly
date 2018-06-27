@@ -4,10 +4,10 @@ from Smartplayer import Smartplayer
 logPath = "./business_game_logs/businesstest.logs"
 b = Banksmart(0, logPath)
 b.add_players_accounts(4)
-b.process_request(Transaction(-1, 0, 12, 1000000, "Cash reserved to bank"))
+b.process_request(Transaction(-1, 0, 12, 10000000, "Cash reserved to bank"))
 # Initial payment of $25000 to all the players for starting the game 
 for i in range(4):
-    b.process_request(Transaction(0, i+1, 11, 100000, "Initial Payment"))
+    b.process_request(Transaction(0, i+1, 11, 1000000, "Initial Payment"))
 
 
 country_list = {"England":   [ 2, 7000, 3500, 1, 700, 7000, 1700],
@@ -143,8 +143,66 @@ print_asset()
 b.sell_building_to_player(1,18)
 print_asset()
 
+b.get_building_from_player(1,12)
+print_asset()
+b.get_building_from_player(1,2)
+print_asset()
+b.get_building_from_player(1,6)
+print_asset()
+b.get_building_from_player(1,15)
+print_asset()
+b.get_building_from_player(1,18)
+print_asset()
 
+b.get_building_from_player(1,12)
+print_asset()
+b.get_building_from_player(1,2)
+print_asset()
+b.get_building_from_player(1,6)
+print_asset()
+b.get_building_from_player(1,15)
+print_asset()
+b.get_building_from_player(1,18)
+print_asset()
+b.get_building_from_player(1,12)
+print_asset()
+b.get_building_from_player(1,2)
+print_asset()
+b.get_building_from_player(1,6)
+print_asset()
+b.get_building_from_player(1,15)
+print_asset()
+b.get_building_from_player(1,18)
+print_asset()
 
+b.get_building_from_player(1,12)
+print_asset()
+b.get_building_from_player(1,2)
+print_asset()
+b.get_building_from_player(1,6)
+print_asset()
+b.get_building_from_player(1,15)
+print_asset()
+b.get_building_from_player(1,18)
+print_asset()
+
+b.get_building_from_player(1,12)
+print_asset()
+
+b.sell_building_to_player(1,2)
+print_asset()
+
+b.sell_building_to_player(1,6)
+print_asset()
+
+b.sell_building_to_player(1,12)
+print_asset()
+
+b.sell_building_to_player(1,15)
+print_asset()
+
+b.sell_building_to_player(1,18)
+print_asset()
 
 
 
