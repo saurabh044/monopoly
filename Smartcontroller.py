@@ -8,6 +8,7 @@ import re
 from Printer import Printer
 import random
 
+
 # Game Board Data
 # key value array of country [boardPosition, buyValue, mortgageValue, colorGroup, basicRent, property_price, property_rent]
 country_list = {"England":   [ 2, 7000, 3500, 1, 700, 7000, 1700],
@@ -93,10 +94,12 @@ class Smartcontroller(object):
         self.player_count = player_count
         self.players = []
         self.dice = Dice()
+        self.available_players_index = {}
         for i in range(self.player_count):
             # inp = raw_input("Enter name for Player-%d : " % (i+1)) # simulation
             inp = 'PL-' + str(i+1) # simulation
             self.players.append(Smartplayer(i+1, str(inp), self.logPath)) 
+            self.available_players_index[i+1] = i
             self.players[i].set_statement_filename("./business_game_logs/Player-%d_account_statement.txt" % (i+1))
         self.turnHolderPlayerID = 0
         self.BoardData = {}
@@ -155,28 +158,34 @@ class Smartcontroller(object):
         while i < len(self.utility_objs):
             self.logObj.printer(self.utility_objs[i])
             i += 1
+            
+    def set_turn(self, value):
+        x = False
+        while x == False:
+            check_key = (value + self.turnHolderPlayerID) % (self.player_count + 1)
+            if check_key in self.available_players_index.keys():
+                x = True
+                self.turnHolderPlayerID = check_key
+            else:
+                if value > 0: 
+                    value += 1
+                else:
+                    value -= 1 
 
     def remove_player_from_game(self, player_id):
-        self.payment_channel(5, player_id, self.get_player_by_its_ID(player_id).getPlayerCashBalance(), "Surrender money" )
-        self.surrender_all_assets_to_bank(player_id)
-        if self.available_players_in_game > 2:
-            if self.get_turnHolderPlayerID() == player_id:
-                indx = self.available_players_in_game.index(player_id)-1
-                self.set_turnHolderPlayerID(self.available_players_in_game[indx])
-        for i in self.available_players_in_game:
-            if i > player_id:
-                self.available_players_index[i] -= 1
-        self.Players.remove(self.get_player_by_its_ID(player_id))
-        self.available_players_in_game.remove(player_id)
-        del self.available_players_index[player_id]
-
-    def get_players_position(self):
-        return [i.board_pos for i in self.players]
+        self.Banker.bankrupt_a_player(player_id)
+        self.players[player_id-1].deactivate()
+        if len(self.players) > 2:
+            if self.turnHolderPlayerID == player_id:
+                self.set_turn(-1)
+            del self.available_players_index[player_id]
+            
 
     def next_move(self, chance):
         self.logObj.printer("Chance #%d" % chance)
-        turnplayer = self.players[self.turnHolderPlayerID]
-        print turnplayer.name
+        if self.state:
+            self.set_turn(1)
+        turnplayer = self.get_player_by_its_ID(self.turnHolderPlayerID)
         self.logObj.printer("Player %s, your chance" % turnplayer.name) 
         optionGameRecv = self.gamePlayMenu.auto_runMenu(1) # simulation line
         if optionGameRecv == 1:
@@ -213,12 +222,8 @@ class Smartcontroller(object):
                     self.remove_player_from_game(turnplayer.id)
                 else:
                     pass
-            self.check_players_with_negative_cash()
-            BankCashCheck = self.check_bank_with_negative_cash(0)
             self.display_board()
             self.print_all_player_assets_table()
-            for i in self.Banker.accounts:
-                self.logObj.printer(i.players_stats)
             if self.state:
                 optionPlayerRecv = 0
                 while optionPlayerRecv != 1:
@@ -229,23 +234,13 @@ class Smartcontroller(object):
                     if optionPlayerRecv == 1:
                         self.logObj.printer("Continuing the game...\n")
                     elif optionPlayerRecv == 2:
-                        self.logObj.printer("Player %d wants to redeem his mortgaged assets" % self.get_turnHolderPlayerID())
-                        self.redeem_mortgaged_property_of_player(self.get_turnHolderPlayerID())
+                        self.logObj.printer("Player %d wants to redeem his mortgaged assets" % self.turnHolderPlayerID)
+                        self.redeem_mortgaged_property_of_player(self.turnHolderPlayerID)
                     elif optionPlayerRecv == 3:
-                        self.logObj.printer("Player %d wants to build property on his site" % self.get_turnHolderPlayerID())
-                        self.build_property_on_player_site(self.get_turnHolderPlayerID())
+                        self.logObj.printer("Player %d wants to build property on his site" % self.turnHolderPlayerID)
+                        self.build_property_on_player_site(self.turnHolderPlayerID)
                     else:
                         pass
-                self.move_turnHolderPlayerID()        
-            
-    def set_turnHolderPlayerID(self, pl_id):
-        self.turnHolderPlayerID = pl_id
-
-    def move_turnHolderPlayerID(self):
-        self.turnHolderPlayerID = (self.turnHolderPlayerID + 1 ) % len(self.players)
-
-    def get_turnHolderPlayerID(self):
-        return self.turnHolderPlayerID
 
     def get_player_by_its_ID(self, ids):
         if ids == 0:
@@ -254,23 +249,21 @@ class Smartcontroller(object):
             return self.players[self.available_players_index[ids]]
 
     def get_player_cash_balance(self, ids):
-        return self.players[self.available_players_index[ids]].getPlayerCashBalance()
-
-    def get_player_name_by_its_ID(self, ids):
-        return self.players[0].name
+        return self.Banker.accounts[ids].balance
 
     def print_all_player_assets_table(self):
         total_cash_reserver = 0
         total_asset_reserver = 0
         self.logObj.printer("{: <5} {: <10} {: >8} {: >10} {: <10}".format("PID", "Name", "Cash", "NetWorth", "Assets"))
         for i in self.players:
-            total_cash_reserver += self.Banker.get_players_balance(i.id)
-            total_asset_reserver += self.Banker.get_players_asset_value(i.id)
-            self.logObj.printer("{: <5} {: <10} {: >8} {: >10} {: <10}".format(i.id,
-                                                                               i.name, 
-                                                                               self.Banker.get_players_balance(i.id), 
-                                                                               self.Banker.get_players_asset_value(i.id),
-                                                                               self.Banker.group_wise_asset_list(i.id)))
+            if i.active:
+                total_cash_reserver += self.Banker.get_players_balance(i.id)
+                total_asset_reserver += self.Banker.get_players_asset_value(i.id)
+                self.logObj.printer("{: <5} {: <10} {: >8} {: >10} {: <10}".format(i.id,
+                                                                                   i.name, 
+                                                                                   self.Banker.get_players_balance(i.id), 
+                                                                                   self.Banker.get_players_asset_value(i.id),
+                                                                                   self.Banker.group_wise_asset_list(i.id)))
         self.logObj.printer("{: <5} {: <10} {: >8} {: >10} {: <10}".format("BID", "Name", "Cash", "NetWorth", "Assets"))
         self.logObj.printer("{: <5} {: <10} {: >8} {: >10} {: <10}".format(0,
                                                                            'Bank',
@@ -281,17 +274,11 @@ class Smartcontroller(object):
         total_asset_reserver += self.Banker.get_players_asset_value(0)
         if total_cash_reserver != 1000000:
             self.logObj.printer("Cash-Balance issue occurred.")
+            raise ValueError
         if total_asset_reserver != 118000:
             self.logObj.printer("Asset-Balance issue occurred.")
+            raise ValueError
         self.logObj.printer("")
-
-    def countryPriceByName(self, name):
-        country_index = self.country_util_name_id_dict[name]
-        return self.country_objs[country_index].getBuyPrice()
-
-    def UtilPriceByName(self, name):
-        util_index = self.country_util_name_id_dict[name]
-        return self.utility_objs[util_index].getBuyPrice()
 
     def display_board(self):
         i = 0
@@ -325,17 +312,6 @@ class Smartcontroller(object):
                                                            ))
         self.logObj.printer("--------------------------------------------------------------------------------------------------------------------------------------------------------\n")
 
-    def get_country_util_by_board_position(self, board_pos):
-        board_pos_val = board_display_data[board_pos-1]
-        matchObj = re.search(r'(.+)\s.*([RGYBU])\(\$', board_pos_val, re.M | re.I)
-        if matchObj is not None:
-            board_country_util_name = matchObj.group(1)
-            if matchObj.group(2) == 'U':
-                return self.utility_objs[self.country_util_name_id_dict[board_country_util_name]]
-            else:
-                return self.country_objs[self.country_util_name_id_dict[board_country_util_name]]
-        else:
-            return None
 
     def get_property_owner_where_player_standing(self, playerobj):
         if playerobj.board_pos in assets_board_locations:
@@ -353,31 +329,23 @@ class Smartcontroller(object):
     def get_board_position_where_player_standing(self, player):
         return player.board_pos
 
-    def transaction_between_two_player(self, recipient, sender, amount):
-        self.Banker.process_request(Transaction(sender, recipient, 11, amount, "Player-%d to Player-%d" % (sender, recipient) ))
-
     def transmit_from_one_to_rest(self, sender, amount, reason_text):
         for i in self.players:
-            if i.id != sender:
-                self.Banker.process_request(Transaction(sender, i.id, 11, amount, reason_text))
+            if i.active:
+                if i.id != sender:
+                    self.Banker.process_request(Transaction(sender, i.id, 11, amount, reason_text))
 
     def receive_from_all_to_one(self, receiver, amount, reason_text):
         for i in self.players:
-            if i.id != receiver:
-                self.Banker.process_request(Transaction(i.id, receiver, 11, amount, reason_text))
+            if i.active:
+                if i.id != receiver:
+                    self.Banker.process_request(Transaction(i.id, receiver, 11, amount, reason_text))
 
     def pay_fine(self, culprit, amount, reason_text):
         self.Banker.process_request(Transaction(culprit, 0, 14, amount, reason_text))
 
     def receive_reward(self, recipient, amount, reason_text):
         self.Banker.process_request(Transaction(0, recipient, 11, amount, reason_text))      
-
-    def get_site_count_of_player(self, player_id):
-        total_sites = 0
-        for i in range(len(self.get_player_by_its_ID(player_id).asset_list)):
-            if self.get_player_by_its_ID(player_id).asset_list[i].isSite():
-                total_sites += 1
-        return total_sites
 
     def payCustomDuty(self, recipient): 
         self.Banker.process_request(Transaction(recipient, 0, 15, None, "Custom Duty"))
@@ -397,8 +365,9 @@ class Smartcontroller(object):
     def check_all_player_presence_on_a_position(self, board_pos):
         pres = []
         for i in self.players:
-            if i.board_pos == board_pos:
-                pres.append(i)
+            if i.active:
+                if i.board_pos == board_pos:
+                    pres.append(i)
         return pres
 
     def apply_uno_to_player(self, recipient, rule_num):
@@ -484,42 +453,6 @@ class Smartcontroller(object):
         else:
             pass
 
-    def display_player_asset_list_menu(self, player_id):
-        if len(self.get_player_by_its_ID(player_id).getPlayerAssetList()) > 0:
-            assetsMenu = MenuBox("Asset List", self.logPath)
-            for i in self.get_player_by_its_ID(player_id).getPlayerAssetList():
-                assetsMenu.addOption(i.get_name_with_mortgage_value())
-            return assetsMenu
-        else:
-            self.logObj.printer("No asset available for Player-%d" % player_id)
-            return None
-
-    def display_player_asset_list_without_buildings_menu(self, player_id):
-        if len(self.get_player_by_its_ID(player_id).getPlayerAssetWithoutAnyBuildingList()) > 0:
-            assetsMenu = MenuBox2("Asset list without any buildings on it", self.logPath)
-            for i in self.get_player_by_its_ID(player_id).getPlayerAssetWithoutAnyBuildingList():
-                assetsMenu.addOption(i[0].get_name_with_mortgage_value(), i[1])
-            return assetsMenu
-        else:
-            self.logObj.printer("No asset without any building available for Player-%d" % player_id)
-            return None
-
-    def display_player_asset_list_with_buildings_menu(self, player_id):
-        if len(self.get_player_by_its_ID(player_id).getPlayerAssetWithBuildingList()) > 0:
-            assetsMenu = MenuBox2("Asset list with buildings", self.logPath)
-            for i in self.get_player_by_its_ID(player_id).getPlayerAssetWithBuildingList():
-                assetsMenu.addOption(i[0].get_name_with_single_building_sell_value(), i[1])
-            return assetsMenu
-        else:
-            self.logObj.printer("No asset with any building available for Player-%d" % player_id)
-            return None
-
-    def display_player_raise_cash_menu(self, player_id):
-        assetsMenu = MenuBox("Raise cash via", self.logPath, 0)
-        assetsMenu.addOption("Mortgage Property")
-        assetsMenu.addOption("Sell a Building")
-        return assetsMenu
-
     def display_player_mortgaged_asset_list_menu(self, player_id):
         if len(self.get_player_by_its_ID(player_id).getPlayerMortgagedAssetList()) > 0:
             assetsMenu = MenuBox("Mortgaged Asset List", self.logPath)
@@ -530,65 +463,11 @@ class Smartcontroller(object):
             self.logObj.printer("No asset is mortgaged to bank for Player-%d" % player_id)
             return None
 
-    def check_players_with_negative_cash(self):
-        player_to_remove = []
-        for i in self.players:
-            if self.Banker.get_players_balance(i.id) < 0:
-                if (self.Players[i].get_player_credit_available() + self.Players[i].getPlayerCashBalance()) > 0:
-                    while self.Players[i].getPlayerCashBalance() < 0:
-                        assetSelectMenu = self.display_player_asset_list_menu(self.Players[i].getPlayerID())
-                        if assetSelectMenu is not None:
-                            optionGot = assetSelectMenu.runMenu()
-                            if optionGot != assetSelectMenu.getoptioncount():
-                                asset_index = optionGot - 1
-                                self.change_ownership_of_country_util(self.Players[i].get_asset_name_from_index(asset_index),
-                                                                      self.Players[i].getPlayerID())
-                                self.payment_channel(self.Players[i].getPlayerID(), 5, self.Players[i].get_asset_mortgage_value_from_asset_index(asset_index), "mortgaged money transfer")
-                                self.Banker.addAssetinMortgageListFromPlayers(self.Players[i].get_assetObj_from_index(asset_index))
-                                self.Players[i].put_asset_in_mortgage_list(asset_index)
-                            else:
-                                self.logObj.printer("Your cash balance is negative ($%d) so can not exit. Please mortgage some assets and get some cash to remain in game." % self.Players[i].getPlayerCashBalance() )
-                        else:
-                            self.logObj.printer("You do not have any assets remaining with you!")
-                else:
-                    self.logObj.printer("Player-%d is not able to pay the amount as bankrupt and deposited all the assets/cash to bank.\nBye!!!" % self.Players[i].getPlayerID())
-                    player_to_remove.append(self.Players[i])
-        for i in player_to_remove:
-            self.remove_player_from_game(i.getPlayerID())
-        if len(self.players) == 1:
-            self.state = False
-
-    def change_ownership_of_country_util(self, objName, playerID):
-        objType = self.find_if_name_is_country_or_util(objName)
-        if objType == 1:  # 1 for country
-            self.country_objs[self.country_util_name_id_dict[objName]].set_ownership(10 + playerID)
-        elif objType == 2:
-            self.utility_objs[self.country_util_name_id_dict[objName]].set_ownership(10 + playerID)
-        else:
-            pass
-
-    def reverse_ownership_of_country_util(self, objName, playerID):
-        objType = self.find_if_name_is_country_or_util(objName)
-        if objType == 1:  # 1 for country
-            self.country_objs[self.country_util_name_id_dict[objName]].set_ownership(playerID)
-        elif objType == 2:
-            self.utility_objs[self.country_util_name_id_dict[objName]].set_ownership(playerID)
-        else:
-            pass
-
     def set_game_state(self, state):
         self.gameState = state  # only 0, 1, -1 allowed in input. 0: inactive, 1: active, -1: finished , -2: Draw
 
     def get_winner_name(self):
         return self.Players[0].getPlayerName()
-
-    def check_bank_with_negative_cash(self, amount):
-        if self.Banker.accounts[0].balance < amount:
-            self.logObj.printer("Bank has ran out of cash. Game Drawn.")
-            self.state = False
-            return False
-        else:
-            return True
 
     def redeem_mortgaged_property_of_player(self, player_id):
         if self.get_player_by_its_ID(player_id).isAnyPropertyMortgaged() is False:
@@ -621,163 +500,30 @@ class Smartcontroller(object):
                 self.logObj.printer("Cash balance is not sufficient to redeem any other mortgaged property.")
                 loop_flag = False
 
-    def check_a_player_if_negative_bal_after_deduction(self, player_id, amount):
-        if self.get_player_by_its_ID(player_id).getPlayerCashBalance() < amount:
-            self.logObj.printer("Low cash balance ($%s) with Player-%d" % (self.get_player_cash_balance(player_id),
-                                                                           player_id))
-            if (self.get_player_by_its_ID(player_id).get_player_credit_available() + self.get_player_by_its_ID(player_id).getPlayerCashBalance()) > amount:
-                self.logObj.printer("Player-%d has not enough balance to pay the amount $%s. Please mortgage/sell some of your properties to bank." % (player_id, amount))
-                while self.get_player_by_its_ID(player_id).getPlayerCashBalance() < amount:
-                    cashraisemethodmenu = self.display_player_raise_cash_menu(player_id)
-                    optforcash = cashraisemethodmenu.runMenu()
-                    if optforcash == 1:
-                        assetSelectMenu = self.display_player_asset_list_without_buildings_menu(player_id)
-                        if assetSelectMenu is not None:
-                            optionGot = assetSelectMenu.runMenu()
-                            if optionGot[0] != assetSelectMenu.getoptioncount():
-                                asset_index = optionGot[1]
-                                mortprice = self.get_player_by_its_ID(player_id).get_asset_mortgage_value_from_asset_index(asset_index)
-                                self.change_ownership_of_country_util(self.get_player_by_its_ID(player_id).get_asset_name_from_index(asset_index), player_id)
-                                self.payment_channel(player_id, 5, mortprice, "mortgaged money transfer")
-                                self.Banker.addAssetinMortgageListFromPlayers(self.get_player_by_its_ID(player_id).get_assetObj_from_index(asset_index))
-                                self.get_player_by_its_ID(player_id).put_asset_in_mortgage_list(asset_index)
-
-                            else:
-                                self.logObj.printer("Your cash balance is negative ($%d) so can not exit. Please mortgage some assets or sell some buildings and get some cash to remain in game." % (self.get_player_by_its_ID(player_id).getPlayerCashBalance() - amount))
-                        else:
-                            self.logObj.printer("You do not have any assets remaining with you!")
-                    else:
-                        assetSelectMenu = self.display_player_asset_list_with_buildings_menu(player_id)
-                        if assetSelectMenu is not None:
-                            optionGot = assetSelectMenu.runMenu()
-                            if optionGot[0] != assetSelectMenu.getoptioncount():
-                                asset_index = optionGot[1]
-                                sellprice = self.get_player_by_its_ID(player_id).get_building_selling_price_from_asset_index(asset_index)
-                                if self.get_player_by_its_ID(player_id).remove_property_of_country(asset_index):
-                                    self.payment_channel(player_id, 5, sellprice, "building selling money transferred")
-                                else:
-                                    self.logObj.printer("You are not allowed to sell building of this country. Please try other country.")
-                            else:
-                                self.logObj.printer("Your cash balance is negative ($%d) so can not exit. Please mortgage some assets or sell some buildings and get some cash to remain in game." % (self.get_player_by_its_ID(player_id).getPlayerCashBalance() - amount))
-                        else:
-                            self.logObj.printer("You do not have any assets remaining with you!")
-                return True
-            else:
-                self.logObj.printer("Player-%d is not able to pay the amount as bankrupt and deposited all the assets/cash to bank.\nBye!!!" % player_id)
-                self.remove_player_from_game(player_id)
-                if len(self.Players) == 1:
-                    self.state = False
-                return False
-        else:
-            return True
-
-    def surrender_all_assets_to_bank(self, player_id):
-        for i in range(len(self.country_objs)):
-            if self.country_objs[i].get_ownership() == player_id:
-                self.properties_board_locations[self.country_objs[i].get_board_location()] = ""
-                self.country_objs[i].set_ownership(0)
-            if self.country_objs[i].get_ownership() == (player_id + 10):
-                self.properties_board_locations[self.country_objs[i].get_board_location()] = ""
-        for i in range(len(self.utility_objs)):
-            if self.utility_objs[i].get_ownership() == player_id:
-                self.properties_board_locations[self.utility_objs[i].get_board_location()] = ""
-                self.utility_objs[i].set_ownership(0)
-            if self.utility_objs[i].get_ownership() == (player_id + 10):
-                self.properties_board_locations[self.utility_objs[i].get_board_location()] = ""
-        for i in self.get_player_by_its_ID(player_id).getPlayerAssetList():
-            i.set_ownership(0)
-            self.Banker.asset_list.append(i)
-            if i.isSite():
-                self.Banker.asset_group_counter[i.get_group()] += 1
-        tmp_asset_list = []
-        for i in range(len(self.Banker.mortgage_ownership)):
-            if self.Banker.mortgage_ownership[i].get_ownership() == (player_id + 10):
-                tmp_asset_list.append(self.Banker.mortgage_ownership[i])
-                self.Banker.mortgage_ownership[i].set_ownership(0)
-                self.Banker.asset_list.append(self.Banker.mortgage_ownership[i])
-                if self.Banker.mortgage_ownership[i].isSite():
-                    self.Banker.asset_group_counter[self.Banker.mortgage_ownership[i].get_group()] += 1
-        for i in tmp_asset_list:
-            self.Banker.mortgage_ownership.remove(i)
-
     def get_winner(self):
         winner = self.Players[0]
         for i in self.Players:
-            if i.player_assets_valuation() > winner.player_assets_valuation():
-                winner = i
+            if i.active:
+                if i.player_assets_valuation() > winner.player_assets_valuation():
+                    winner = i
         return winner.getPlayerID()
 
-    def payment_channel(self, recipient, sender, amount, transaction_description):
-        if 1 <= sender <= 4:
-            sender_name = "Player-%d" % sender
-        else:
-            sender_name = "Bank"
-        if 1 <= recipient <= 4:
-            receiver_name = "Player-%d" % recipient
-        else:
-            receiver_name = "Bank"
-        if 1 <= sender <= 4:
-            res = self.check_a_player_if_negative_bal_after_deduction(sender, amount)
-        else:
-            res = self.check_bank_with_negative_cash(amount)
-        if res is True:
-            self.get_player_by_its_ID(sender).get_from_me(amount, "%s: %s" % (receiver_name,
-                                                                                         transaction_description))
-            self.get_player_by_its_ID(recipient).pay_to_me(amount, "%s: %s" % (sender_name,
-                                                                                             transaction_description))
-        else:
-            self.logObj.printer("Transaction failed as %s is not able to pay the amount as become bankrupt." % sender_name)
-
-    def display_player_sites_list_menu(self, player_id):
-        if len(self.get_player_by_its_ID(player_id).getPlayerMortgagedAssetList()) == 0:
-            if len(self.get_player_by_its_ID(player_id).getSitesIndices()) > 0:
-                assetsMenu = MenuBox("Player Sites List", self.logPath)
-                for i in self.get_player_by_its_ID(player_id).getSitesIndices():
-                    assetsMenu.addOption(self.get_player_by_its_ID(player_id).get_assetObj_from_index(i).get_name_with_building_price())
-                return assetsMenu
-            else:
-                self.logObj.printer("No asset available for Player-%d" % player_id)
-                return None
-        else:
-            self.logObj.printer("There are already mortgaged properties (%s). First redeem them." % self.get_player_by_its_ID(player_id).getPlayerMortgagedRealEstateShort())
-
     def build_property_on_player_site(self, player_id):
-        self.logObj.printer("Player cash balance = %d" % self.get_player_by_its_ID(player_id).getPlayerCashBalance())
-        assetSelectMenu = self.display_player_sites_list_menu(player_id)
-        site_indices_list = self.get_player_by_its_ID(player_id).getSitesIndices()
-        if assetSelectMenu is not None:
-            optionGot = assetSelectMenu.runMenu()
-            if optionGot != assetSelectMenu.getoptioncount():
-                asset_index = site_indices_list[optionGot - 1]
-                asset_name = self.get_player_by_its_ID(player_id).get_assetObj_from_index(asset_index).get_name()
-                building_price = self.get_player_by_its_ID(player_id).get_assetObj_from_index(asset_index).get_building_price()
-                if self.get_player_by_its_ID(player_id).getPlayerCashBalance() > building_price:
-                    if self.get_player_by_its_ID(player_id).add_property_on_country(asset_index):
-                        self.payment_channel(5, player_id, building_price, "building on %s money transfer" % asset_name)
-                        self.logObj.printer("Now cash balance = $%d" % self.get_player_by_its_ID(player_id).getPlayerCashBalance())
-                else:
-                    self.logObj.printer("Not enough cash balance to raise more buildings.")
+        player_props = []
+        for i in self.Banker.asset_list:
+            if i.issite():
+                if i.owner == player_id and i.prop_vacancy:
+                    player_props.append(i)
+        if len(player_props) > 0:  
+            prop_buy_menu = MenuBox('Building Purchase Menu', self.logPath)
+            for i in player_props:
+                prop_buy_menu.addOption(i.name)
+            optionGot = prop_buy_menu.runMenu()
+            if optionGot != prop_buy_menu.getoptioncount():
+                asset_id = player_props[optionGot - 1].board_loc
+                self.Banker.sell_building_to_player(player_id, asset_id)
             else:
                 self.logObj.printer("Not interested in buying")
         else:
-            self.logObj.printer("You do not have any eligible site remaining with you to build property upon!")
-
-    def disp_all_players_assets_counter(self):
-        for i in self.Banker.accounts:
-            self.logObj.printer(i.players_stats)
-        
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-            
-        
+            self.logObj.printer("You do not have any eligible site to build property upon!")
+  

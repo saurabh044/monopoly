@@ -8,8 +8,6 @@ class Smartplayer(object):
         self.logObj = Printer(logPath)
         self.board_pos = 1
         self.transaction_statement = Printer()
-        self.asset_counter = {'Ro': 0, 'Go': 0, 'Bo': 0, 'Yo': 0, 'U1o': 0,
-                              'Rm': 0, 'Gm': 0, 'Bm': 0, 'Ym': 0, 'Um': 0} 
         self.assets_name = {}
         
     def set_statement_filename(self, fname):

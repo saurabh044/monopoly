@@ -20,32 +20,6 @@ class Account(object):
         self.balance = balance
         self.transaction_statement = Printer()
         self.state = True
-        #                     0  1  2  3  4  5  6  7  8  9 10
-        self.players_stats = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                              0, 0, 0, 0, 0, 0, 0, 0]
-        #                     11 12 13 14 15 16 17 18
-                          #  [26, 20, 6, 5, 5, 5, 5, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        # 0 overall assets count
-        # 1 country count
-        # 2 util_count
-        # 3 red country count
-        # 4 green country count
-        # 5 blue country count
-        # 6 yellow country count
-        # 7 U1 count
-        # 8 U2 count
-        # 9 U3 count
-        # Mortgaged values
-        # 10 country count
-        # 11 util_count
-        # 12 red country count
-        # 13 green country count
-        # 14 blue country count
-        # 15 yellow country count
-        # 16 U1 count
-        # 17 U2 count
-        # 18 U3 count
-        
         
     def deposit(self, amount, msg=""):
         self.balance += amount
@@ -82,7 +56,6 @@ class Banksmart(object):
         self.id = id
         self.asset_list = []
         self.accounts = [Account(0, "Bank")]
-        self.accounts[0].players_stats = [26, 20, 6, 5, 5, 5, 5, 2, 2, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.accounts[0].set_statement_filename("./business_game_logs/Bank_account_statement.txt")
         self.logPath = logPath
         self.logObj = Printer(self.logPath)
@@ -100,40 +73,64 @@ class Banksmart(object):
         return self.accounts[player_id].balance
     
     def bankrupt_a_player(self, player_id):
-        self.accounts[0].deposit(self.accounts[player_id].balance)
-        self.accounts[player_id].balance = 0
+        self.accounts[0].deposit(self.accounts[player_id].balance, "Surrendered money from Player-%d" % player_id)
+        self.accounts[player_id].withdraw(self.accounts[player_id].balance, "Bankrupt")
+        for i in self.asset_list:
+            if i.owner == player_id or i.owner == player_id + 10:
+                i.owner = 0
+                i.prop_count = 0
+                i.current_rent = i.rent
+                i.prop_vacancy = False
+                i.prop_sell = False
         self.accounts[player_id].deactivate()
            
     def raise_cash(self, player_id, min_amount):
-        while self.accounts[player_id].balance < min_amount:
-            player_props = []            
-            for i in self.asset_list:
-                if i.owner == player_id:
-                    player_props.append(i)
-            if len(player_props) == 0:
-                return False
-            MortMenu = MenuBox('Cash Raise Menu', self.logPath)
-            for i in player_props:
-                if i.prop_count == 4:
-                    pname = "(3 House, 1 Hotel)"
-                elif 1 <= i.prop_count < 4:
-                    pname = "(%d House)" % i.prop_count
-                else:
+        if self.get_players_credit_value(player_id) > min_amount:
+            while self.accounts[player_id].balance < min_amount:
+                player_props = []            
+                for i in self.asset_list:
+                    if i.owner == player_id:
+                        player_props.append(i)
+                if len(player_props) == 0:
+                    return False
+                MortMenu = MenuBox('Cash Raise Menu', self.logPath)
+                for i in player_props:
                     pname = ""
-                MortMenu.addOption(i.name + " " + pname ) 
-            opt = MortMenu.runMenu()
-            print "you selected " + str(opt)
-            if player_props[opt-1].prop_count > 0:
-                self.get_building_from_player(player_id, player_props[opt-1].board_loc)
-            else:
-                self.mortgage_asset_of_player(player_id, player_props[opt-1].board_loc)
-        return True
-           
+                    if i.issite():
+                        if i.prop_count == 4:
+                            pname = "(3 House, 1 Hotel)"
+                        elif 1 <= i.prop_count < 4:
+                            pname = "(%d House)" % i.prop_count
+                        else:
+                            pname = ""
+                    MortMenu.addOption(i.name + " " + pname ) 
+                opt = MortMenu.runMenu()
+                print "you selected " + str(opt)
+                if player_props[opt-1].issite():
+                    if player_props[opt-1].prop_count > 0:
+                        self.get_building_from_player(player_id, player_props[opt-1].board_loc)
+                    else:
+                        self.mortgage_asset_of_player(player_id, player_props[opt-1].board_loc)
+                else:
+                    self.mortgage_asset_of_player(player_id, player_props[opt-1].board_loc)
+            return True
+        else:
+            return False
+        
     def get_players_asset_value(self, player_id):
         val = 0
         for i in self.asset_list:
-            if i.owner == player_id:
+            if i.owner == player_id or i.owner == player_id + 10:
                 val += i.buy_price
+        return val
+    
+    def get_players_credit_value(self, player_id):
+        val = self.accounts[player_id].balance
+        for i in self.asset_list:
+            if i.owner == player_id:
+                val += i.mortgage_val
+                if i.issite():
+                    val += i.prop_price * i.prop_count / 2
         return val
         
     def get_owner_by_assetid(self, id):
@@ -225,7 +222,7 @@ class Banksmart(object):
                     utilityProperty += i.name + ","
                     uc += 1
             if i.owner == player_id + 10:
-                if i.isSite():
+                if i.issite():
                     if i.color_grp == 1:
                         redProperty += i.get_name_with_prop_flag() + "(m),"
                         rc += 1
@@ -265,7 +262,6 @@ class Banksmart(object):
                     self.accounts[0].deposit(asset.buy_price, "Asset %s sale to %s" % (asset.name, player_id))
                     asset.owner = player_id
                     self.prop_vacancy_set(player_id, asset)
-                    self.stats_update(player_id, asset)
                     self.logObj.printer("Purchase done")    
                     return 0 
                 else:
@@ -368,15 +364,6 @@ class Banksmart(object):
     # 15. Custom Duty ()
     # 16. Travelling Duty ()
     
-    def stats_update(self, player_id, asset):
-        self.accounts[player_id].players_stats[0] += 1
-        if asset.issite():
-            self.accounts[player_id].players_stats[1] += 1
-            self.accounts[player_id].players_stats[asset.color_grp+2] += 1
-        else:
-            self.accounts[player_id].players_stats[2] += 1
-            self.accounts[player_id].players_stats[asset.pair_grp+6] += 1  
-            
     def prop_vacancy_set(self, player_id, asset):
         if asset.issite():
             col_grp_count = 0 
@@ -459,6 +446,3 @@ class Banksmart(object):
                         if i.isenoughbalance(amount):
                             i.withdraw(amount, msg)
                             self.accounts[recep_acc_id].deposit(amount, msg)        
-        
-        
-        
