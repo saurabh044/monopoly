@@ -270,7 +270,7 @@ class Banksmart(object):
         if asset.owner == 0:
             self.logObj.printer("You reached on %s" % asset.name)
             if self.accounts[player_id].isenoughbalance(asset.buy_price):
-                player_buyconsent = self.PlayerBuyMenu.auto_runMenu(1)  # This auto_runMenu statement is for simulation purpose.
+                player_buyconsent = self.PlayerBuyMenu.runMenu()  # This auto_runMenu statement is for simulation purpose.
                 if player_buyconsent == 1:
                     self.accounts[player_id].withdraw(asset.buy_price, "Asset %s purchase from Bank" % asset.name)
                     self.accounts[0].deposit(asset.buy_price, "Asset %s sale to %s" % (asset.name, player_id))

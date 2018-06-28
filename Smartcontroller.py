@@ -70,7 +70,7 @@ class Dice(object):
     
 class Smartcontroller(object):
 
-    crossover_amount = 100
+    crossover_amount = 1500
     def __init__(self, player_count, log_path):
         self.logPath = log_path
         self.gamePlayMenu = MenuBox("Play Game", self.logPath)
@@ -88,8 +88,7 @@ class Smartcontroller(object):
         self.dice = Dice()
         self.available_players_id = []
         for i in range(self.player_count):
-            # inp = raw_input("Enter name for Player-%d : " % (i+1)) # simulation
-            inp = 'PL-' + str(i+1) # simulation
+            inp = raw_input("Enter name for Player-%d : " % (i+1)) # simulation
             self.players.append(Smartplayer(i+1, str(inp), self.logPath)) 
             self.available_players_id.append(i+1)
             self.players[i].set_statement_filename("./business_game_logs/Player-%d_account_statement.txt" % (i+1))
@@ -203,10 +202,7 @@ class Smartcontroller(object):
             if self.state:
                 optionPlayerRecv = 0
                 while optionPlayerRecv != 1:
-                    if chance < 500:
-                        optionPlayerRecv = self.PlayerMenu.auto_runMenu(1)
-                    else:
-                        optionPlayerRecv = self.PlayerMenu.runMenu()
+                    optionPlayerRecv = self.PlayerMenu.runMenu()
                     if optionPlayerRecv == 1:
                         self.logObj.printer("Continuing the game...\n")
                     elif optionPlayerRecv == 2:
