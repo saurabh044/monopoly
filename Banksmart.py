@@ -421,21 +421,13 @@ class Banksmart(object):
                         c += 1       
 
     # 1. Rent payment ()
-    # 2. Country Purchase (board_location)
-    # 3. Utility Purchase (board_location)
     # 4. UNO Payment (diceVal)
     # 5. Chance Payment (diceVal)
     # 6. Jail Payment ()
-    # 7. Property Purchase (board_location)
     # 8. Country Mortgage (board_location)
     # 9. Utility Mortgage (board_location)
     # 10. Property Sell (board_location)
     # 11. General Payment from bank to player (amount)
-    # 12. Bank cash reserve add (amount)
-    # 13. Crossover Payment (amount)
-    # 14. Fine Payment (amount)
-    # 15. Custom Duty ()
-    # 16. Travelling Duty ()    
     
     def payfine(self, player_id, amount, msg):
         if self.accounts[player_id].isenoughbalance(amount) is False:
@@ -454,49 +446,27 @@ class Banksmart(object):
         self.accounts[player_id].deposit(amount, msg)
         return []
     
-    def process_request(self, transaction):
-        payee_acc_id = transaction.payee
-        recep_acc_id = transaction.recipient 
-        data = transaction.detail
-        msg = transaction.msg
-        if transaction.type in [11, 13, 14]:
-            if self.accounts[payee_acc_id].isenoughbalance(data):
-                self.accounts[payee_acc_id].withdraw(data, msg)
-                self.accounts[recep_acc_id].deposit(data, msg)
-                return True
-            return False                
-        if transaction.type == 12:
-            self.accounts[recep_acc_id].deposit(data, msg)
-            return True  
-        if transaction.type in [2, 3]:
-            if self.accounts[payee_acc_id].isenoughbalance(self.get_buyprice_by_assetid(data)):
-                self.accounts[payee_acc_id].withdraw(self.get_buyprice_by_assetid(data), msg)
-                self.accounts[recep_acc_id].deposit(self.get_buyprice_by_assetid(data), msg)
-                return True         
+    def payduty(self, player_id, msg):
+        factor = 1
+        if msg == "custom duty": factor = 2
+        duty = self.get_players_countries(payee_acc_id) * 50 * factor
+        if duty > 500 * factor:
+            duty = 500 * factor
+        if self.accounts[player_id].isenoughbalance(duty) is False:
+            if self.raise_cash(player_id, duty):
+                pass
             else:
-                return False
-        if transaction.type == 1:
-            if self.accounts[payee_acc_id].isenoughbalance(self.get_current_rent_by_assetid(data)):
-                self.accounts[payee_acc_id].withdraw(self.get_current_rent_by_assetid(data), msg)
-                self.accounts[recep_acc_id].deposit(self.get_current_rent_by_assetid(data), msg)   
-                return True         
+                return [player_id]
+        self.accounts[player_id].withdraw(duty, msg)
+        self.accounts[0].deposit(duty, msg)
+        return []
+    
+    def p2ptransaction(self, payee_id, recep_id, amount, msg):
+        if self.accounts[payee_id].isenoughbalance(amount) is False:
+            if self.raise_cash(payee_id, amount):
+                pass
             else:
-                return False
-        if transaction.type in [15, 16]:
-            factor = 17 - transaction.type
-            customduty = self.get_players_countries(payee_acc_id) * 50 * factor
-            if customduty > 500 * factor:
-                customduty = 500 * factor
-            if self.accounts[payee_acc_id].isenoughbalance(customduty):
-                self.accounts[payee_acc_id].withdraw(customduty, msg)
-                self.accounts[recep_acc_id].deposit(customduty, msg)
-                return True
-            return False  
-        if transaction.type == 5:
-            if data == 7:
-                amount = self.get_players_countries(recep_acc_id) * 100
-                for i in self.accounts:
-                    if i.id != recep_acc_id:
-                        if i.isenoughbalance(amount):
-                            i.withdraw(amount, msg)
-                            self.accounts[recep_acc_id].deposit(amount, msg)        
+                return [payee_id]
+        self.accounts[payee_id].withdraw(amount, msg)
+        self.accounts[recep_id].deposit(amount, msg)
+        return []

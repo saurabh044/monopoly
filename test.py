@@ -75,12 +75,14 @@ b.sell_building_to_player(1,6)
 
 print_asset()
 print b.accounts[1].balance
-b.raise_cash(1, 85000)
+#b.raise_cash(1, 85000)
 
-b.sell_building_to_player(1,12)
+#b.sell_building_to_player(1,12)
 print_asset()
 
-b.get_building_from_player(2,12)
+#b.get_building_from_player(2,12)
 print_asset()
 
-
+a = "traveel"
+if a == 'traveel':
+    print 90
