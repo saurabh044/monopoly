@@ -124,6 +124,17 @@ class Banksmart(object):
                 val += i.buy_price
         return val
     
+    def get_players_valuation(self, player_id):
+        val = 0
+        for i in self.asset_list:
+            if i.owner == player_id:
+                val += i.buy_price
+            elif i.owner == player_id + 10:
+                val += i.buy_price - i.mortgage_val
+            else:
+                pass
+        return val + self.accounts[player_id].balance        
+    
     def get_players_credit_value(self, player_id):
         val = self.accounts[player_id].balance
         for i in self.asset_list:
@@ -336,34 +347,35 @@ class Banksmart(object):
             
     def mortgage_asset_of_player(self, player_id, asset_id):
         asset = self.get_asset_by_assetid(asset_id)
-        mort_amount = asset.mortgage_val
-        if self.accounts[0].isenoughbalance(mort_amount):
-            asset.owner = player_id + 10
-            asset.prop_vacancy = False
-            self.accounts[0].withdraw(mort_amount, "Asset %s mortgage from Player-%d" % (asset.name, player_id))
-            self.accounts[player_id].deposit(mort_amount, "Asset %s mortgaged to bank" % asset.name)
-            self.logObj.printer("Asset mortgage done. Remaining balance = $%d" % self.accounts[player_id].balance)
+        if asset.owner == player_id + 10:
+            mort_amount = asset.mortgage_val
+            if self.accounts[0].isenoughbalance(mort_amount):
+                asset.owner = player_id + 10
+                asset.prop_vacancy = False
+                self.accounts[0].withdraw(mort_amount, "Asset %s mortgage from Player-%d" % (asset.name, player_id))
+                self.accounts[player_id].deposit(mort_amount, "Asset %s mortgaged to bank" % asset.name)
+                self.logObj.printer("Asset mortgage done. Remaining balance = $%d" % self.accounts[player_id].balance)
+            else:
+                self.logObj.printer("Bank doesn't have sufficient balance to give mortgage value of %s" % asset.name)
         else:
-            self.logObj.printer("Bank doesn't have sufficient balance to give mortgage value of %s" % asset.name)
-    
+            self.logObj.printer("You can not mortgage other player's asset." % asset.name)   
+        
+    def redeem_asset_of_player(self, player_id, asset_id):
+        asset = self.get_asset_by_assetid(asset_id)
+        if asset.owner == player_id + 10:
+            mort_amount = asset.mortgage_val
+            if self.accounts[player_id].isenoughbalance(mort_amount):
+                asset.owner = player_id
+                self.prop_vacancy_set(player_id, asset)
+                self.prop_sell_set(player_id, asset)
+                self.accounts[player_id].withdraw(mort_amount, "Asset %s redeemed from Bank" % (asset.name, player_id))
+                self.accounts[0].deposit(mort_amount, "Asset %s redeemed by Player-%d" % (asset.name, player_id))
+                self.logObj.printer("Asset redemption done. Remaining balance = $%d" % self.accounts[player_id].balance)
+            else:
+                self.logObj.printer("Player-%d doesn't have sufficient balance to redeem %s" % (player_id, asset.name))
+        else:
+            self.logObj.printer("You can not redeem other player's mortgaged asset." % asset.name)   
 
-    # 1. Rent payment ()
-    # 2. Country Purchase (board_location)
-    # 3. Utility Purchase (board_location)
-    # 4. UNO Payment (diceVal)
-    # 5. Chance Payment (diceVal)
-    # 6. Jail Payment ()
-    # 7. Property Purchase (board_location)
-    # 8. Country Mortgage (board_location)
-    # 9. Utility Mortgage (board_location)
-    # 10. Property Sell (board_location)
-    # 11. General Payment from bank to player (amount)
-    # 12. Bank cash reserve add (amount)
-    # 13. Crossover Payment (amount)
-    # 14. Fine Payment (amount)
-    # 15. Custom Duty ()
-    # 16. Travelling Duty ()
-    
     def prop_vacancy_set(self, player_id, asset):
         if asset.issite():
             col_grp_count = 0 
@@ -399,7 +411,41 @@ class Banksmart(object):
                     if i.owner == player_id and i.color_grp == asset.color_grp:
                         i.prop_sell = fl_list[c]
                         c += 1       
-                      
+
+    # 1. Rent payment ()
+    # 2. Country Purchase (board_location)
+    # 3. Utility Purchase (board_location)
+    # 4. UNO Payment (diceVal)
+    # 5. Chance Payment (diceVal)
+    # 6. Jail Payment ()
+    # 7. Property Purchase (board_location)
+    # 8. Country Mortgage (board_location)
+    # 9. Utility Mortgage (board_location)
+    # 10. Property Sell (board_location)
+    # 11. General Payment from bank to player (amount)
+    # 12. Bank cash reserve add (amount)
+    # 13. Crossover Payment (amount)
+    # 14. Fine Payment (amount)
+    # 15. Custom Duty ()
+    # 16. Travelling Duty ()    
+    
+    def payfine(self, player_id, amount, msg):
+        if self.accounts[player_id].isenoughbalance(amount) is False:
+            if self.raise_cash(player_id, amount):
+                pass
+            else:
+                return [player_id]
+        self.accounts[player_id].withdraw(amount, msg)
+        self.accounts[0].deposit(amount, msg)
+        return []         
+            
+    def payreward(self, player_id, amount, msg): 
+        if self.accounts[0].isenoughbalance(amount) is False:
+            return [0]
+        self.accounts[0].withdraw(amount, msg)
+        self.accounts[player_id].deposit(amount, msg)
+        return []
+    
     def process_request(self, transaction):
         payee_acc_id = transaction.payee
         recep_acc_id = transaction.recipient 
