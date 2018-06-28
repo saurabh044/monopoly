@@ -20,12 +20,15 @@ if optionRecv != 4:
     GameController = Smartcontroller(optionRecv+1, logPath)
     optionGameRecv = GameController.state
     chanceCount = 0    
-    while optionGameRecv:
-        GameController.display_board()
-        GameController.print_all_player_assets_table()
-        chanceCount += 1
-        GameController.next_move(chanceCount)
-        optionGameRecv = GameController.state
+    try:
+        while optionGameRecv:
+            GameController.display_board()
+            GameController.print_all_player_assets_table()
+            chanceCount += 1
+            GameController.next_move(chanceCount)
+            optionGameRecv = GameController.state
+    except KeyboardInterrupt:
+        p.printer("You ended the game abruptly.")
 else:
     p.printer("Exiting.")  
 

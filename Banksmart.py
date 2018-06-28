@@ -344,10 +344,11 @@ class Banksmart(object):
                                     "than your other properties of same color." % asset.name)   
         else:
             self.logObj.printer("You can not sell buildings on %s as not owner." % asset.name)     
+            raise ValueError
             
     def mortgage_asset_of_player(self, player_id, asset_id):
         asset = self.get_asset_by_assetid(asset_id)
-        if asset.owner == player_id + 10:
+        if asset.owner == player_id:
             mort_amount = asset.mortgage_val
             if self.accounts[0].isenoughbalance(mort_amount):
                 asset.owner = player_id + 10
@@ -358,7 +359,10 @@ class Banksmart(object):
             else:
                 self.logObj.printer("Bank doesn't have sufficient balance to give mortgage value of %s" % asset.name)
         else:
-            self.logObj.printer("You can not mortgage other player's asset." % asset.name)   
+            self.logObj.printer("You can not mortgage other player's asset")   
+            print "player id = %d" % player_id
+            print "asset id = %d" % asset_id
+            raise ValueError
         
     def redeem_asset_of_player(self, player_id, asset_id):
         asset = self.get_asset_by_assetid(asset_id)
@@ -375,6 +379,7 @@ class Banksmart(object):
                 self.logObj.printer("Player-%d doesn't have sufficient balance to redeem %s" % (player_id, asset.name))
         else:
             self.logObj.printer("You can not redeem other player's mortgaged asset." % asset.name)   
+            raise ValueError
 
     def prop_vacancy_set(self, player_id, asset):
         if asset.issite():

@@ -446,22 +446,22 @@ class Smartcontroller(object):
             self.bank_response_action(res)             
         elif rule_num == 3:
             self.logObj.printer("Won lottery prize of $2500.")
-            res = self.payreward(recipient, 2500, "Chance-3: won lottery")
+            res = self.Banker.payreward(recipient, 2500, "Chance-3: won lottery")
             self.bank_response_action(res) 
         elif rule_num == 5:
             self.logObj.printer("You have won cross-word prize of $1000.")
-            res = self.payreward(recipient, 1000, "Chance-5: won cross-word")
+            res = self.Banker.payreward(recipient, 1000, "Chance-5: won cross-word")
             self.bank_response_action(res) 
         elif rule_num == 7:
             self.logObj.printer("Collect $100 rent from each player for all of your site.")
             self.Banker.process_request(Transaction(None, recipient, 5, 7, "Chance-7: Rent collection"))
         elif rule_num == 9:
             self.logObj.printer("You have won the jackpot of $2000.")
-            res = self.payreward(recipient, 2000, "Chance-9: won jackpot")
+            res = self.Banker.payreward(recipient, 2000, "Chance-9: won jackpot")
             self.bank_response_action(res) 
         elif rule_num == 11:
             self.logObj.printer("Prize for best performance in export of $1500.")
-            res = self.payreward(recipient, 1500, "Chance-11: Best exporter")
+            res = self.Banker.payreward(recipient, 1500, "Chance-11: Best exporter")
             self.bank_response_action(res)             
         else:
             pass
