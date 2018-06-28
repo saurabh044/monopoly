@@ -419,49 +419,21 @@ class Banksmart(object):
                     if i.owner == player_id and i.color_grp == asset.color_grp:
                         i.prop_sell = fl_list[c]
                         c += 1       
-
-    # 1. Rent payment ()
-    # 4. UNO Payment (diceVal)
-    # 5. Chance Payment (diceVal)
-    # 6. Jail Payment ()
-    # 8. Country Mortgage (board_location)
-    # 9. Utility Mortgage (board_location)
-    # 10. Property Sell (board_location)
-    # 11. General Payment from bank to player (amount)
-    
-    def payfine(self, player_id, amount, msg):
-        if self.accounts[player_id].isenoughbalance(amount) is False:
-            if self.raise_cash(player_id, amount):
-                pass
-            else:
-                return [player_id]
-        self.accounts[player_id].withdraw(amount, msg)
-        self.accounts[0].deposit(amount, msg)
-        return []         
-            
+                                      
     def payreward(self, player_id, amount, msg): 
         if self.accounts[0].isenoughbalance(amount) is False:
             return [0]
         self.accounts[0].withdraw(amount, msg)
         self.accounts[player_id].deposit(amount, msg)
         return []
-    
-    def payduty(self, player_id, msg):
-        factor = 1
-        if msg == "custom duty": factor = 2
-        duty = self.get_players_countries(player_id) * 50 * factor
-        if duty > 500 * factor:
-            duty = 500 * factor
-        if self.accounts[player_id].isenoughbalance(duty) is False:
-            if self.raise_cash(player_id, duty):
-                pass
-            else:
-                return [player_id]
-        self.accounts[player_id].withdraw(duty, msg)
-        self.accounts[0].deposit(duty, msg)
-        return []
-    
+
     def p2ptransaction(self, payee_id, recep_id, amount, msg):
+        if amount == -1:
+            factor = 1
+            if msg == "custom duty": factor = 2
+            amount = self.get_players_countries(payee_id) * 50 * factor
+            if amount > 500 * factor:
+                amount = 500 * factor   
         if self.accounts[payee_id].isenoughbalance(amount) is False:
             if self.raise_cash(payee_id, amount):
                 pass
