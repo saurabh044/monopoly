@@ -449,7 +449,7 @@ class Banksmart(object):
     def payduty(self, player_id, msg):
         factor = 1
         if msg == "custom duty": factor = 2
-        duty = self.get_players_countries(payee_acc_id) * 50 * factor
+        duty = self.get_players_countries(player_id) * 50 * factor
         if duty > 500 * factor:
             duty = 500 * factor
         if self.accounts[player_id].isenoughbalance(duty) is False:
