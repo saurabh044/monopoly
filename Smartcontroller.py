@@ -403,7 +403,7 @@ class Smartcontroller(object):
             for i in player_mort_props:
                 prop_redeem_menu.addOption(i.name)  
             optionGot = prop_redeem_menu.runMenu()
-            if optionGot != prop_buy_menu.getoptioncount():
+            if optionGot != prop_redeem_menu.getoptioncount():
                 asset_id = player_mort_props[optionGot-1].board_loc
                 self.Banker.redeem_asset_of_player(player_id, asset_id)
             else:
