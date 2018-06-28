@@ -17,10 +17,10 @@ if optionRecv != 4:
     GameController = Smartcontroller(optionRecv+1, logPath)
     optionGameRecv = GameController.state
     chanceCount = 0    
+    GameController.display_board()
+    GameController.print_all_player_assets_table()
     try:
         while optionGameRecv:
-            GameController.display_board()
-            GameController.print_all_player_assets_table()
             chanceCount += 1
             GameController.next_move(chanceCount)
             optionGameRecv = GameController.state

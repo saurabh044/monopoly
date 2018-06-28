@@ -73,12 +73,8 @@ class Smartcontroller(object):
     crossover_amount = 1500
     def __init__(self, player_count, log_path):
         self.logPath = log_path
-        self.gamePlayMenu = MenuBox("Play Game", self.logPath)
-        self.gamePlayMenu.addOption("Roll Dice")
-
         self.PlayerMenu = MenuBox("Player Menu", self.logPath)
         self.PlayerMenu.addOptions(["Continue", "Redeem", "Build Property", "Sell Property", "Buy Other's Asset", "Mortgage"])
-
         self.PlayerBuyMenu = MenuBox("Buy Menu", self.logPath)
         self.PlayerBuyMenu.addOption("Want to buy")
         
@@ -160,7 +156,7 @@ class Smartcontroller(object):
             self.set_turn(1)
         turnplayer = self.players[self.turnHolderPlayerID-1]
         self.logObj.printer("Player %s, your chance" % turnplayer.name) 
-        optionGameRecv = self.gamePlayMenu.auto_runMenu(1) # simulation line
+        optionGameRecv = 1
         if optionGameRecv == 1:
             dice_out = self.dice.throw_dice()
             self.logObj.printer("Dice outcome = %d" % dice_out)
@@ -292,12 +288,7 @@ class Smartcontroller(object):
         self.bank_response_action(res)
         
     def check_all_player_presence_on_a_position(self, board_pos):
-        pres = []
-        for i in self.players:
-            if i.active:
-                if i.board_pos == board_pos:
-                    pres.append(i)
-        return pres
+        return [i for i in self.players if i.active and i.board_pos == board_pos]
 
     def apply_uno_to_player(self, recipient, rule_num):
         if rule_num == 2:
@@ -401,16 +392,6 @@ class Smartcontroller(object):
             self.bank_response_action(res)             
         else:
             pass
-
-    def display_player_mortgaged_asset_list_menu(self, player_id):
-        if len(self.players[player_id-1].getPlayerMortgagedAssetList()) > 0:
-            assetsMenu = MenuBox("Mortgaged Asset List", self.logPath)
-            for i in self.players[player_id-1].getPlayerMortgagedAssetList():
-                assetsMenu.addOption(i.get_name_with_mortgage_value())
-            return assetsMenu
-        else:
-            self.logObj.printer("No asset is mortgaged to bank for Player-%d" % player_id)
-            return None
 
     def redeem_mortgaged_property_of_player(self, player_id):
         player_mort_props = []
