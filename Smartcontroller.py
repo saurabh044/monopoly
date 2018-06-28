@@ -63,13 +63,10 @@ assets_board_locations = { 2: "",  3: "",  4: "",  6: "",
         
 class Dice(object):
 
-    def __init__(self):
-        self.val = 0
-
     def throw_dice(self):
         out = random.randint(2, 12)
         return out
-    
+  
     
 class Smartcontroller(object):
 
@@ -80,12 +77,7 @@ class Smartcontroller(object):
         self.gamePlayMenu.addOption("Roll Dice")
 
         self.PlayerMenu = MenuBox("Player Menu", self.logPath)
-        self.PlayerMenu.addOption("Continue")
-        self.PlayerMenu.addOption("Redeem")
-        self.PlayerMenu.addOption("Build Property")
-        self.PlayerMenu.addOption("Sell Property")
-        self.PlayerMenu.addOption("Buy Other Player Country")
-        self.PlayerMenu.addOption("Mortgage")
+        self.PlayerMenu.addOptions(["Continue", "Redeem", "Build Property", "Sell Property", "Buy Other's Asset", "Mortgage"])
 
         self.PlayerBuyMenu = MenuBox("Buy Menu", self.logPath)
         self.PlayerBuyMenu.addOption("Want to buy")
@@ -141,12 +133,15 @@ class Smartcontroller(object):
             next_players_index = (self.available_players_id.index(self.turnHolderPlayerID) + value) % len(self.available_players_id)
             self.turnHolderPlayerID = self.available_players_id[next_players_index]
 
+    def print_winner(self, name):
+        des = ("*" * 30 + "\n") * 2
+        self.logObj.printer(des + "The winner is %s" % name + des)            
+
     def remove_player_from_game(self, player_id):
         if player_id == 0:
             self.logObj.printer("Bank is out of cash.")
             self.state = False         
-            winner = self.get_winner()
-            self.logObj.printer("The winner is %s" % self.players[winner-1].name)
+            self.print_winner(self.get_winner())
         else:
             res = self.Banker.bankrupt_a_player(player_id)
             for i in res:
@@ -158,7 +153,7 @@ class Smartcontroller(object):
                 self.available_players_id.remove(player_id)
             if len(self.available_players_id) == 1:
                 self.state = False
-                self.logObj.printer("The winner is %s" % self.get_winner_name()) 
+                self.print_winner(self.players[self.available_players_id[0]-1].name)
                 
     def next_move(self, chance):
         self.logObj.printer("Chance #%d" % chance)
@@ -231,17 +226,12 @@ class Smartcontroller(object):
             if i.active:
                 total_cash_reserver += self.Banker.get_players_balance(i.id)
                 total_asset_reserver += self.Banker.get_players_asset_value(i.id)
-                self.logObj.printer("{: <5} {: <10} {: >8} {: >10} {: <10}".format(i.id,
-                                                                                   i.name, 
-                                                                                   self.Banker.get_players_balance(i.id), 
-                                                                                   self.Banker.get_players_asset_value(i.id),
-                                                                                   self.Banker.group_wise_asset_list(i.id)))
+                self.logObj.printer("{: <5} {: <10} {: >8} {: >10} {: <10}".format(i.id, i.name, 
+                                    self.Banker.get_players_balance(i.id), self.Banker.get_players_asset_value(i.id),
+                                    self.Banker.group_wise_asset_list(i.id)))
         self.logObj.printer("{: <5} {: <10} {: >8} {: >10} {: <10}".format("BID", "Name", "Cash", "NetWorth", "Assets"))
-        self.logObj.printer("{: <5} {: <10} {: >8} {: >10} {: <10}".format(0,
-                                                                           'Bank',
-                                                                           self.Banker.get_players_balance(0),
-                                                                           self.Banker.get_players_asset_value(0),
-                                                                           self.Banker.group_wise_asset_list(0)))
+        self.logObj.printer("{: <5} {: <10} {: >8} {: >10} {: <10}".format(0, 'Bank',
+                            self.Banker.get_players_balance(0), self.Banker.get_players_asset_value(0), self.Banker.group_wise_asset_list(0)))
         total_cash_reserver += self.Banker.get_players_balance(0)
         total_asset_reserver += self.Banker.get_players_asset_value(0)
         if total_cash_reserver != 1000000:
@@ -266,24 +256,14 @@ class Smartcontroller(object):
                     loc = loc + "<P" + str(pp[j].id) + ">"
             self.BoardData[i+1] = [board_display_data[i], owner_tag, loc]
             i += 1
-        self.logObj.printer("--------------------------------------------------------------------------------------------------------------------------------------------------------")
+        self.logObj.printer('-' * 152)
         for i in range(9):
             self.logObj.printer("{: >16} {: <6} {: <16} {: >16} {: <6} {: <16} {: >16} {: <6} {: <16} {: >16} {: <6} {: <16}".format(
-                                                           self.BoardData[i + 1][0],
-                                                           self.BoardData[i + 1][1],
-                                                           self.BoardData[i + 1][2],
-                                                           self.BoardData[i + 10][0],
-                                                           self.BoardData[i + 10][1],
-                                                           self.BoardData[i + 10][2],
-                                                           self.BoardData[i + 19][0],
-                                                           self.BoardData[i + 19][1],
-                                                           self.BoardData[i + 19][2],
-                                                           self.BoardData[i + 28][0],
-                                                           self.BoardData[i + 28][1],
-                                                           self.BoardData[i + 28][2],
-                                                           ))
-        self.logObj.printer("--------------------------------------------------------------------------------------------------------------------------------------------------------\n")
-
+                                self.BoardData[i + 1][0], self.BoardData[i + 1][1], self.BoardData[i + 1][2], 
+                                self.BoardData[i + 10][0], self.BoardData[i + 10][1],self.BoardData[i + 10][2],
+                                self.BoardData[i + 19][0], self.BoardData[i + 19][1],self.BoardData[i + 19][2],
+                                self.BoardData[i + 28][0], self.BoardData[i + 28][1],self.BoardData[i + 28][2],))
+        self.logObj.printer('-' * 152)
 
     def get_property_owner_where_player_standing(self, playerobj):
         if playerobj.board_pos in assets_board_locations:
@@ -325,51 +305,51 @@ class Smartcontroller(object):
 
     def apply_uno_to_player(self, recipient, rule_num):
         if rule_num == 2:
-            self.logObj.printer("It is your anniversary, collect $500 from each player.")
+            self.logObj.printer("UNO-2: It is your anniversary, collect $500 from each player.")
             self.receive_from_all_to_one(recipient, 500, "UNO-2: Anniversary gift.")
         elif rule_num == 4:
-            self.logObj.printer("1st prize in Beauty Contest of $2500.")
+            self.logObj.printer("UNO-4: 1st prize in Beauty Contest of $2500.")
             res = self.Banker.payreward(recipient, 2500, "UNO-4, Won Beauty Contest")
             self.bank_response_action(res)
         elif rule_num == 6:
-            self.logObj.printer("Income tax refund of $2000.")
+            self.logObj.printer("UNO-6: Income tax refund of $2000.")
             res = self.Banker.payreward(recipient, 2000, "UNO-6, IT refund")
             self.bank_response_action(res)
         elif rule_num == 8:
-            self.logObj.printer("Go to party house and collect $200 from each player.")
+            self.logObj.printer("UNO-8: Go to party house and collect $200 from each player.")
             self.receive_from_all_to_one(recipient, 200, "UNO-8: Party house")
             for i in self.players:
                 if i.id == recipient:
                     i.jump(19)
         elif rule_num == 10:
-            self.logObj.printer("Receive interest on shares of $1500.")
+            self.logObj.printer("UNO-10: Receive interest on shares of $1500.")
             res = self.Banker.payreward(recipient, 1500, "UNO-10: shares interest")
             self.bank_response_action(res)
         elif rule_num == 12:
-            self.logObj.printer("Receive amount of $3000 after sale of stocks.")
+            self.logObj.printer("UNO-12: Receive amount of $3000 after sale of stocks.")
             res = self.Banker.payreward(recipient, 3000, "UNO-12: sale of stocks")
             self.bank_response_action(res)
         elif rule_num == 3:
-            self.logObj.printer("Go to jail with $500 fine")
+            self.logObj.printer("UNO-3: Go to jail with $500 fine")
             res = self.Banker.p2ptransaction(recipient, 0, 500, "UNO-3: Sent to Jail.")
             self.bank_response_action(res)
             for i in self.players:
                 if i.id == recipient:
                     i.jump(28)
         elif rule_num == 5:
-            self.logObj.printer("School and medical fees expenses of $2500.")
+            self.logObj.printer("UNO-5: School and medical fees expenses of $2500.")
             res = self.Banker.p2ptransaction(recipient, 0, 2500, "UNO-5: School Fees.")
             self.bank_response_action(res)
         elif rule_num == 7:
-            self.logObj.printer("Submit your passport and pay $5000 fine.")
+            self.logObj.printer("UNO-7: Submit your passport and pay $5000 fine.")
             res = self.Banker.p2ptransaction(recipient, 0, 5000, "UNO-7: Passport Deposit")
             self.bank_response_action(res)
         elif rule_num == 9:
-            self.logObj.printer("Make general repair on your properties of $100")
+            self.logObj.printer("UNO-9: Make general repair on your properties of $100")
             res = self.Banker.p2ptransaction(recipient, 0,  100, "UNO-9: Repair")
             self.bank_response_action(res)            
         elif rule_num == 11:
-            self.logObj.printer("Pay insurance premium of $1500.")
+            self.logObj.printer("UNO-11: Pay insurance premium of $1500.")
             res = self.Banker.p2ptransaction(recipient, 0, 1500, "UNO-11, Insurance Premium")
             self.bank_response_action(res) 
         else:
@@ -377,50 +357,50 @@ class Smartcontroller(object):
 
     def apply_chance_to_player(self, recipient, rule_num):
         if rule_num == 2:
-            self.logObj.printer("Loss in share market of $2000.")
+            self.logObj.printer("Chance-2: Loss in share market of $2000.")
             res = self.Banker.p2ptransaction(recipient, 0, 2000, "Chance-2: Loss in share market")
             self.bank_response_action(res) 
         elif rule_num == 4:
-            self.logObj.printer("Fine for accident due to wrong driving of $1000")
+            self.logObj.printer("Chance-4: Fine for accident due to wrong driving of $1000")
             res = self.Banker.p2ptransaction(recipient, 0, 1000, "Chance-4: Driving fine")
             self.bank_response_action(res) 
         elif rule_num == 6:
-            self.logObj.printer("House repair of $1500.")
+            self.logObj.printer("Chance-6: House repair of $1500.")
             res = self.Banker.p2ptransaction(recipient, 0, 1500, "Chance-6: House repair")
             self.bank_response_action(res) 
         elif rule_num == 8:
-            self.logObj.printer("Loss of $3000 due to fire in Go-down.")
+            self.logObj.printer("Chance-8: Loss of $3000 due to fire in Go-down.")
             res = self.Banker.p2ptransaction(recipient, 0, 3000, "Chance-8: Loss due to fire")
             self.bank_response_action(res)             
         elif rule_num == 10:
-            self.logObj.printer("Go to jail.")
+            self.logObj.printer("Chance-10: Go to jail.")
             res = self.Banker.p2ptransaction(recipient, 0, 500, "Chance-10: Sent to jail")
             self.bank_response_action(res)             
             for i in self.players:
                 if i.id == recipient:
                     i.jump(28)
         elif rule_num == 12:
-            self.logObj.printer("Repair of your car of $200.")
+            self.logObj.printer("Chance-12: Repair of your car of $200.")
             res = self.Banker.p2ptransaction(recipient, 0, 200, "Chance-12: Car repair")
             self.bank_response_action(res)             
         elif rule_num == 3:
-            self.logObj.printer("Won lottery prize of $2500.")
+            self.logObj.printer("Chance-3: Won lottery prize of $2500.")
             res = self.Banker.payreward(recipient, 2500, "Chance-3: won lottery")
             self.bank_response_action(res) 
         elif rule_num == 5:
-            self.logObj.printer("You have won cross-word prize of $1000.")
+            self.logObj.printer("Chance-5: You have won cross-word prize of $1000.")
             res = self.Banker.payreward(recipient, 1000, "Chance-5: won cross-word")
             self.bank_response_action(res) 
         elif rule_num == 7:
-            self.logObj.printer("Collect $100 rent from each player for all of your site.")
+            self.logObj.printer("Chance-7: Collect $100 rent from each player for all of your site.")
             amount = self.Banker.get_players_countries(recipient) * 100
             self.receive_from_all_to_one(recipient, amount, "Chance-7: Rent collection")
         elif rule_num == 9:
-            self.logObj.printer("You have won the jackpot of $2000.")
+            self.logObj.printer("Chance-9: You have won the jackpot of $2000.")
             res = self.Banker.payreward(recipient, 2000, "Chance-9: won jackpot")
             self.bank_response_action(res) 
         elif rule_num == 11:
-            self.logObj.printer("Prize for best performance in export of $1500.")
+            self.logObj.printer("Chance-11: Prize for best performance in export of $1500.")
             res = self.Banker.payreward(recipient, 1500, "Chance-11: Best exporter")
             self.bank_response_action(res)             
         else:
@@ -435,9 +415,6 @@ class Smartcontroller(object):
         else:
             self.logObj.printer("No asset is mortgaged to bank for Player-%d" % player_id)
             return None
-
-    def get_winner_name(self):
-        return self.players[self.available_players_id[0]-1].name
 
     def redeem_mortgaged_property_of_player(self, player_id):
         player_mort_props = []
@@ -481,7 +458,7 @@ class Smartcontroller(object):
         for i in self.available_players_id:
             if self.Banker.get_players_valuation(i) > self.Banker.get_players_valuation(winner):
                 winner = i
-        return winner
+        return self.players[winner-1].name
   
     def bank_response_action(self, player_list):
         for i in player_list:

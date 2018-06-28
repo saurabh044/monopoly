@@ -17,6 +17,9 @@ class MenuBox(object):
     def addOption(self, optionText):
         self.optionList.append(optionText)
 
+    def addOptions(self, optionslist):
+        self.optionList += optionslist
+
     def dispMenu(self):
         counter = 1
         self.logObj.printer(self.__Name)

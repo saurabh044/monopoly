@@ -10,12 +10,9 @@ fH.close()
 p = Printer(logPath)
 # initial Game Start Menu
 gameStartMenu = MenuBox("Start Game:", logPath)
-gameStartMenu.addOption("2 Player ")
-gameStartMenu.addOption("3 Player ")
-gameStartMenu.addOption("4 Player ")
+gameStartMenu.addOptions(["2 Player ", "3 Player ", "4 Player "])
 optionRecv = gameStartMenu.auto_runMenu(3) # simulation
 #optionRecv = 3 # simulation line
-
 if optionRecv != 4:
     GameController = Smartcontroller(optionRecv+1, logPath)
     optionGameRecv = GameController.state
