@@ -173,7 +173,9 @@ class Smartcontroller(object):
             winner = self.get_winner()
             self.logObj.printer("The winner is %s" % self.players[winner-1].name)
         else:
-            self.Banker.bankrupt_a_player(player_id)
+            res = self.Banker.bankrupt_a_player(player_id)
+            for i in res:
+                assets_board_locations[i] = ""
             self.players[player_id-1].deactivate()
             if len(self.available_players_id) >= 2:
                 if self.turnHolderPlayerID == player_id:
@@ -320,9 +322,6 @@ class Smartcontroller(object):
     def get_property_rent_where_player_standing(self, player):
         board_pos = player.board_pos
         return self.Banker.get_current_rent_by_assetid(board_pos)
-
-    def get_position_name_where_player_standing(self, player):
-        return board_display_data[player.board_pos-1].split(' ')[0]
 
     def get_board_position_where_player_standing(self, player):
         return player.board_pos

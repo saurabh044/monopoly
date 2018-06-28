@@ -75,15 +75,18 @@ class Banksmart(object):
     def bankrupt_a_player(self, player_id):
         self.accounts[0].deposit(self.accounts[player_id].balance, "Surrendered money from Player-%d" % player_id)
         self.accounts[player_id].withdraw(self.accounts[player_id].balance, "Bankrupt")
+        prop_list = []
         for i in self.asset_list:
             if i.owner == player_id or i.owner == player_id + 10:
+                prop_list.append(i.board_loc) 
                 i.owner = 0
                 i.prop_count = 0
                 i.current_rent = i.rent
                 i.prop_vacancy = False
                 i.prop_sell = False
         self.accounts[player_id].deactivate()
-           
+        return prop_list
+      
     def raise_cash(self, player_id, min_amount):
         if self.get_players_credit_value(player_id) > min_amount:
             while self.accounts[player_id].balance < min_amount:
