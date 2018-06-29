@@ -1,6 +1,5 @@
 from MenuBox import MenuBox
-from MenuBox2 import MenuBox2
-from Banksmart import Banksmart, Transaction
+from Banksmart import Banksmart
 from Smartplayer import Smartplayer
 from Asset import Country 
 from Asset import Utility
@@ -8,7 +7,6 @@ from cmdbtester import DBhandler
 import re
 from Printer import Printer
 import random
-
 
 # Game Board Data
 # key value array of country [boardPosition, buyValue, mortgageValue, colorGroup, basicRent, property_price, property_rent]

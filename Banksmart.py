@@ -1,16 +1,5 @@
 from Printer import Printer
 from MenuBox import MenuBox
-from MenuBox2 import MenuBox2
-from pyasn1.type.constraint import ValueRangeConstraint
-
-class Transaction(object):
-   
-    def __init__(self, payee, recipient, type, detail, msg):
-        self.payee = payee
-        self.recipient = recipient
-        self.type = type 
-        self.detail = detail
-        self.msg = msg  
         
 class Account(object):
     
