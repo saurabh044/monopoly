@@ -158,7 +158,6 @@ class DBhandler(object):
                 try:
                     # execute the command to drop the database
                     cur.execute("DROP DATABASE %s" % database)
-                    print "INFO: Database \'%s\' dropped." % database
                     # if no exception return 1
                     return 1
                 except mysql.connector.Error as err:

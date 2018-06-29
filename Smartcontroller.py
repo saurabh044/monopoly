@@ -73,7 +73,7 @@ class Smartcontroller(object):
     def __init__(self, player_count, log_path):       
         self.logPath = log_path
         self.PlayerMenu = MenuBox("Player Menu", self.logPath)
-        self.PlayerMenu.addOptions(["Continue", "Redeem", "Build Property", "Sell Property", "Buy Other's Asset", "Mortgage"])
+        self.PlayerMenu.addOptions(["Continue", "Redeem", "Build Property", "Sell Property", "Buy Other's Asset", "Mortgage", "Save Game"])
         self.PlayerBuyMenu = MenuBox("Buy Menu", self.logPath)
         self.PlayerBuyMenu.addOption("Want to buy")
         
@@ -196,7 +196,7 @@ class Smartcontroller(object):
             self.print_all_player_assets_table()
             if self.state:
                 optionPlayerRecv = 0
-                while optionPlayerRecv != 1:
+                while optionPlayerRecv not in [1, 7] :
                     optionPlayerRecv = self.PlayerMenu.runMenu()
                     if optionPlayerRecv == 1:
                         self.logObj.printer("Continuing the game...\n")
@@ -206,6 +206,9 @@ class Smartcontroller(object):
                     elif optionPlayerRecv == 3:
                         self.logObj.printer("Player %d wants to build property on his site" % self.turnHolderPlayerID)
                         self.build_property_on_player_site(self.turnHolderPlayerID)
+                    elif optionPlayerRecv == 7:
+                        self.save_game()
+                        self.state = False
                     else:
                         pass
 
@@ -482,14 +485,20 @@ class Smartcontroller(object):
         if dx.isDBexist('monopoly_game_db') == 1:
             dx.dropDB('monopoly_game_db')
         self.logObj.printer("Saving game data into database...")
-        dx.createTable('monopoly_game_db', 'player', ['id', 'name', 'active', 'board_pos'],
-                        ['tinyint', 'varchar(30)', 'tinyint', 'tinyint'])
-        dx.createTable('monopoly_game_db', 'countries', ['board_loc', 'current_rent', 'prop_count', 'prop_vacancy', 'prop_sell'],
-                       ['tinyint', 'int', 'tinyint', 'tinyint', 'tinyint'])
-        dx.createTable('monopoly_game_db', 'utilities', ['board_loc', 'current_rent'], ['tinyint', 'int'])
-        dx.createTable('monopoly_game_db', 'Bank', [], [])
-        dx.createTable('monopoly_game_db', 'accounts', [], [])
-        dx.createTable('monopoly_game_db', 'controller', [], [])
+        dx.createDB("monopoly_game_db")
+        dx.createTable('monopoly_game_db', 'player', ['id', 'name', 'active', 'board_pos', 'isavailable', 'isturnholder'],
+                        ['tinyint primary key', 'varchar(30)', 'tinyint', 'tinyint', 'tinyint', 'tinyint'])
+        dx.createTable('monopoly_game_db', 'countries', ['board_loc', 'owner', 'current_rent', 'prop_count', 'prop_vacancy', 'prop_sell'],
+                       ['tinyint primary key', 'tinyint', 'int', 'tinyint', 'tinyint', 'tinyint'])
+        dx.createTable('monopoly_game_db', 'utilities', ['board_loc', 'owner', 'current_rent'], ['tinyint primary key', 'tinyint', 'int'])
+        dx.createTable('monopoly_game_db', 'accounts', ['id', 'balance', 'state'],
+                       ['tinyint primary key', 'int', 'tinyint'])
+        for i in self.players:
+            isavail, isturn = 0, 0
+            if i.id in self.available_players_id: isavail = 1
+            if i.id == self.turnHolderPlayerID: isturn = 1
+            data = i.state() + (isavail, isturn)
+            dx.insertintoDB('monopoly_game_db', "INSERT INTO player values (%d, \'%s\', %d, %d, %d, %d)" % data)
 
         
         

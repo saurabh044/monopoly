@@ -31,7 +31,7 @@ class MenuBox(object):
         def wrapper(self, option=0): return func(self, 1)
         return wrapper        
 
-    @simulate
+    #@simulate
     def runMenu(self, option=0):
         if option != 0:
             self.dispMenu()

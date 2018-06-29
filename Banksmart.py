@@ -38,6 +38,8 @@ class Account(object):
             statement = "{: >60} {: >8} {: >8} {: >8}".format(msg, "", amount, self.balance)
         self.transaction_statement.file_only_printer(statement)
 
+    def state(self):
+        return (self.id, self.balance, self.state)
         
 class Banksmart(object):
     
