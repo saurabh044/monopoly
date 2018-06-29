@@ -54,13 +54,10 @@ class Country(Asset):
         else:
             prefix = ""
         return self.name + prefix
+    
+    def state(self):
+        return (self.board_loc, self.current_rent, self.prop_count, self.prop_vacancy, self.prop_sell)
             
-            
-    def __str__(self):
-        return "%d-%s--%s:%d,%d,%s,%d,%d,%d,%d,%d,%d,%d" % (self.prop_count, self.prop_vacancy, self.prop_sell, self.owner,
-                                                        self.board_loc, self.name, self.buy_price,
-                       self.mortgage_val, self.rent, self.prop_price,
-                       self.prop_rent, self.color_grp, self.current_rent)
         
 class Utility(Asset):
     def __init__(self, board_loc, name, buy_price, mortgage_value, rent, pair_rent, grp):
@@ -75,8 +72,5 @@ class Utility(Asset):
     def isutil(self):
         return True
     
-    def __str__(self):
-        return "%d,%s,%d,%d,%d,%d,%d,%d,%d" % (self.board_loc, self.name, self.buy_price,
-                       self.mortgage_val, self.rent, self.current_rent, self.pair_rent,
-                       self.owner, self.pair_grp)
-        
+    def state(self):
+        return (self.board_loc, self.current_rent)

@@ -8,7 +8,6 @@ class Smartplayer(object):
         self.logObj = Printer(logPath)
         self.board_pos = 1
         self.transaction_statement = Printer()
-        self.assets_name = {}
         
     def set_statement_filename(self, fname):
         self.transaction_statement.set_log_file_name(fname)
@@ -29,4 +28,6 @@ class Smartplayer(object):
         self.active = False
         self.board_pos = 0
         self.transaction_statement.file_only_printer("\nYour account has been deactivated.\n")
-    
+        
+    def state(self):
+        return (self.id, self.name, self.active, self.board_pos) 

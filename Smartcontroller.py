@@ -445,7 +445,7 @@ class Smartcontroller(object):
     def db_populate(self):
         dx = DBhandler(username='root', password='root')
         if dx.isDBexist('monopoly') == -1:
-            self.logObj.printer("Populating game database")
+            self.logObj.printer("Populating game database...")
             dx.createDB("monopoly")
             dx.createTable('monopoly', 'countries', ['name', 'boardposition', 'buyvalue',
                                                      'mortgagevalue', 'colorgroup', 
@@ -478,3 +478,30 @@ class Smartcontroller(object):
                 dx.insertintoDB('monopoly', "INSERT INTO positionname values (%d, \'%s\', %d)" 
                                 % (i+1, board_display_data[i], isasset))          
             self.logObj.printer("Done.")    
+            
+    def save_game(self):
+        dx = DBhandler(username='root', password='root')
+        if dx.isDBexist('monopoly_game_db') == 1:
+            dx.dropDB('monopoly_game_db')
+        self.logObj.printer("Saving game data into database...")
+        dx.createTable('monopoly_game_db', 'player', ['id', 'name', 'active', 'board_pos'],
+                        ['tinyint', 'varchar(30)', 'tinyint', 'tinyint'])
+        dx.createTable('monopoly_game_db', 'countries', ['board_loc', 'current_rent', 'prop_count', 'prop_vacancy', 'prop_sell'],
+                       ['tinyint', 'int', 'tinyint', 'tinyint', 'tinyint'])
+        dx.createTable('monopoly_game_db', 'utilities', ['board_loc', 'current_rent'], ['tinyint', 'int'])
+        dx.createTable('monopoly_game_db', 'Bank', [], [])
+        dx.createTable('monopoly_game_db', 'accounts', [], [])
+        dx.createTable('monopoly_game_db', 'controller', [], [])
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+            
+
+        
