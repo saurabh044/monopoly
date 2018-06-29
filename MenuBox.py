@@ -11,9 +11,6 @@ class MenuBox(object):
         self.optionList = []
         self.withExit = withexitopt
 
-    def getMenuBoxType(self):
-        return self.withExit
-
     def addOption(self, optionText):
         self.optionList.append(optionText)
 
@@ -23,53 +20,36 @@ class MenuBox(object):
     def dispMenu(self):
         counter = 1
         self.logObj.printer(self.__Name)
-        self.logObj.printer("-"*len(self.__Name))
+        self.logObj.printer("-" * len(self.__Name))
         for i in self.optionList:
             self.logObj.printer(str(counter) + ": " + i)
             counter += 1
-        if self.getMenuBoxType() == 1:
+        if self.withExit == 1:
             self.logObj.printer(str(counter) + ": " + "Exit")
+       
+    def simulate(func):
+        def wrapper(self, option=0): return func(self, 1)
+        return wrapper        
 
-    def getoptioncount(self):
-        if self.getMenuBoxType() == 1:
-            return len(self.optionList) + 1
+    # @simulate
+    def runMenu(self, option=0):
+        if option != 0:
+            self.dispMenu()
+            self.logObj.printer("\nAutomatic selection of option #%d" % option)
+            return option
         else:
-            return len(self.optionList)
-
-    def runMenu(self):
-        a = 0
-        selection = 0
-        while a == 0:
-            self.dispMenu()
-            inp = raw_input("Select an option: ")
-            self.logObj.printer("")
-            matchObj = re.match(r'^(\d+)$', inp, re.M | re.I)
-            if matchObj:
-                if 1 <= int(matchObj.group(1)) <= self.getoptioncount():
-                    a = 1
-                    selection = int(inp)
-                    self.logObj.printer("You selected option #%s" % inp)
+            selection = 0
+            while selection == 0:
+                self.dispMenu()
+                inp = raw_input("Select an option: ")
+                self.logObj.printer("")
+                matchObj = re.match(r'^(\d+)$', inp, re.M | re.I)
+                if matchObj:
+                    if 1 <= int(matchObj.group(1)) <= (len(self.optionList) + self.withExit):
+                        selection = int(inp)
+                        self.logObj.printer("You selected option #%s" % inp)
+                    else:
+                        self.logObj.printer("You entered %s, please enter valid option." % inp)
                 else:
                     self.logObj.printer("You entered %s, please enter valid option." % inp)
-            else:
-                self.logObj.printer("You entered %s, please enter valid option." % inp)
-        return selection
-
-    def auto_runMenu(self, option):
-        a = 0
-        selection = 0
-        while (a == 0):
-            self.dispMenu()
-            inp = str(option)
-            self.logObj.printer("")
-            matchObj = re.match(r'^(\d+)$', inp, re.M | re.I)
-            if matchObj:
-                if 1 <= int(matchObj.group(1)) <= self.getoptioncount():
-                    a = 1
-                    selection = int(inp)
-                    self.logObj.printer("You selected option #%s" % inp)
-                else:
-                    self.logObj.printer("You entered %s, please enter valid option." % inp)
-            else:
-                self.logObj.printer("You entered %s, please enter valid option." % inp)
-        return selection
+            return selection       
