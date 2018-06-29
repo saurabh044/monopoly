@@ -15,6 +15,7 @@ optionRecv = gameStartMenu.runMenu() # simulation
 #optionRecv = 3 # simulation line
 if optionRecv != 4:
     GameController = Smartcontroller(5-optionRecv, logPath)
+    # GameController.db_populate()
     optionGameRecv = GameController.state
     chanceCount = 0    
     GameController.display_board()

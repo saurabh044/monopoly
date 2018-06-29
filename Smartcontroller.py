@@ -4,7 +4,7 @@ from Banksmart import Banksmart, Transaction
 from Smartplayer import Smartplayer
 from Asset import Country 
 from Asset import Utility
-from cmdbtester import cmdbtester
+from cmdbtester import DBhandler
 import re
 from Printer import Printer
 import random
@@ -72,49 +72,7 @@ class Dice(object):
 class Smartcontroller(object):
 
     crossover_amount = 1500
-    def __init__(self, player_count, log_path):
-        dx = DBhandler(username='root', password='root')
-        if dx.isDBexist('monopoly') == -1:
-            dx.createDB("monopoly")
-            dx.createTable('monopoly', 'countries', ['name', 'boardposition', 'buyvalue',
-                                                     'mortgagevalue', 'colorgroup', 
-                                                     'basicrent', 'property_price',
-                                                     'property_rent'], ['varchar(20)', 
-                                                                        'int primary key',
-                                                                      'int', 'int', 'int',
-                                                                      'int', 'int', 'int'])
-            
-            dx.createTable('monopoly', 'utilities', ['name', 'boardposition', 'buyvalue',
-                                                     'mortgagevalue', 'rent', 'pair_rent', 
-                                                     'group_id'], ['varchar(20)', 
-                                                                   'int primary key',
-                                                                    'int', 'int', 'int',
-                                                                    'int', 'int']) 
-            dx.createTable('monopoly', 'positionname', ['boardposition', 'name', 'isasset'], 
-                                                        ['int primary key', 'varchar(30)', 
-                                                         'tinyint'])
-            
-            for i in country_list.keys():
-                dx.insertintoDB('monopoly', "INSERT INTO countries values (\'%s\', %d," \
-                                     "%d, %d, %d, %d, %d, %d)" % ((i,) + country_list[i]))                    
-            for i in utility_list.keys():
-                dx.insertintoDB('monopoly', "INSERT INTO utilities values (\'%s\', %d," \
-                                     "%d, %d, %d, %d, %d)" % ((i,) + utility_list[i]))
-             
-            for i in range(36):
-                isasset = 0
-                if (i+1) in assets_board_locations: isasset = 1
-                dx.insertintoDB('monopoly', "INSERT INTO positionname values (%d, \'%s\', %d)" 
-                                % (i+1, board_display_data[i], isasset))        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+    def __init__(self, player_count, log_path):       
         self.logPath = log_path
         self.PlayerMenu = MenuBox("Player Menu", self.logPath)
         self.PlayerMenu.addOptions(["Continue", "Redeem", "Build Property", "Sell Property", "Buy Other's Asset", "Mortgage"])
@@ -483,3 +441,40 @@ class Smartcontroller(object):
     def bank_response_action(self, player_list):
         for i in player_list:
             self.remove_player_from_game(i)
+
+    def db_populate(self):
+        dx = DBhandler(username='root', password='root')
+        if dx.isDBexist('monopoly') == -1:
+            self.logObj.printer("Populating game database")
+            dx.createDB("monopoly")
+            dx.createTable('monopoly', 'countries', ['name', 'boardposition', 'buyvalue',
+                                                     'mortgagevalue', 'colorgroup', 
+                                                     'basicrent', 'property_price',
+                                                     'property_rent'], ['varchar(20)', 
+                                                                        'int primary key',
+                                                                      'int', 'int', 'int',
+                                                                      'int', 'int', 'int'])
+            dx.createTable('monopoly', 'utilities', ['name', 'boardposition', 'buyvalue',
+                                                     'mortgagevalue', 'rent', 'pair_rent', 
+                                                     'group_id'], ['varchar(20)', 
+                                                                   'int primary key',
+                                                                    'int', 'int', 'int',
+                                                                    'int', 'int']) 
+            dx.createTable('monopoly', 'positionname', ['boardposition', 'name', 'isasset'], 
+                                                        ['int primary key', 'varchar(30)', 
+                                                         'tinyint'])
+            self.logObj.printer("Progressing...")
+            for i in country_list.keys():
+                dx.insertintoDB('monopoly', "INSERT INTO countries values (\'%s\', %d," \
+                                     "%d, %d, %d, %d, %d, %d)" % ((i,) + country_list[i]))     
+            self.logObj.printer("Progressing...")                   
+            for i in utility_list.keys():
+                dx.insertintoDB('monopoly', "INSERT INTO utilities values (\'%s\', %d," \
+                                     "%d, %d, %d, %d, %d)" % ((i,) + utility_list[i]))
+            self.logObj.printer("Progressing...") 
+            for i in range(36):
+                isasset = 0
+                if (i+1) in assets_board_locations: isasset = 1
+                dx.insertintoDB('monopoly', "INSERT INTO positionname values (%d, \'%s\', %d)" 
+                                % (i+1, board_display_data[i], isasset))          
+            self.logObj.printer("Done.")    

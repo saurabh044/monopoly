@@ -84,7 +84,7 @@ class DBhandler(object):
             return 1
         except mysql.connector.Error as err:
             # if any exception above print MySQL error and return -1
-            DBhandler.printError(err)
+            # DBhandler.printError(err)
             return -1
 
     def setDBname(self, database):
@@ -120,20 +120,16 @@ class DBhandler(object):
         database (string): Database name
 
         '''
-        print "INFO: Checking if \'%s\' already exists in server." % database
         # if DB already exists return with 0
         if self.isDBexist(database) == 1:
-            print "INFO: Database \'%s\' already exist." % database
             return 0
         else:
-            print "INFO: No such database exists"
             # if no such DB exist, get the connection object first
             # create a cursor object from above connection
             with cursor_cm(self.__username, self.__password) as cur:
                 # Execute the SQL command to create database
                 try:
                     cur.execute("CREATE DATABASE %s" % database)
-                    print "INFO: Database \'%s\' created." % database
                     # return 1 for successful DB creation
                     return 1
                 except mysql.connector.Error as err:
