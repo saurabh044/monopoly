@@ -9,7 +9,7 @@ fH = open(logPath, 'w')
 fH.close()
 p = Printer(logPath)
 # initial Game Start Menu
-gameretrieve = MenuBox("MONOPOLY GAME")
+gameretrieve = MenuBox("MONOPOLY GAME", logPath)
 gameretrieve.addOptions(["Retrieve saved game", "New Game"])
 option = gameretrieve.runMenu()
 if option == 1:

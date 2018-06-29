@@ -69,7 +69,7 @@ class Dice(object):
     
 class Smartcontroller(object):
 
-    crossover_amount = 1500
+    crossover_amount = 100
     def __init__(self, player_count, log_path):       
         self.logPath = log_path
         self.PlayerMenu = MenuBox("Player Menu", self.logPath)

@@ -193,69 +193,31 @@ class Banksmart(object):
         else:
             grp_count = 0
             for i in self.asset_list:
-                if i.isutil():
+                if i.issite() is False:
                     if i.owner == asset.owner and i.pair_grp == asset.pair_grp:
                         grp_count += 1 
             if grp_count == 2:
                 return asset.pair_rent
             return asset.current_rent             
-                    
+     
     def group_wise_asset_list(self, player_id):
-        redProperty = ""
-        greenProperty = ""
-        blueProperty = ""
-        yellowProperty = ""
-        utilityProperty = ""
-        rc, gc, bc, yc, uc = 0, 0, 0, 0, 0
-        out = ""
+        color_code = ('R', 'G', 'B', 'Y', 'U')
+        prop_name_list = [[],[],[],[],[]]
         for i in self.asset_list:
             if i.owner == player_id:
                 if i.issite():
-                    if i.color_grp == 1:
-                        redProperty += i.get_name_with_prop_flag() + ","
-                        rc += 1
-                    elif i.color_grp == 2:
-                        greenProperty += i.get_name_with_prop_flag() + ","
-                        gc += 1
-                    elif i.color_grp == 3:
-                        blueProperty += i.get_name_with_prop_flag() + ","
-                        bc += 1
-                    else:
-                        yellowProperty += i.get_name_with_prop_flag() + ","
-                        yc += 1
+                    prop_name_list[i.color_grp-1].append(i.get_name_with_prop_flag())
                 else:
-                    utilityProperty += i.name + ","
-                    uc += 1
-            if i.owner == player_id + 10:
+                    prop_name_list[4].append(i.name)
+            elif i.owner == player_id + 10:
                 if i.issite():
-                    if i.color_grp == 1:
-                        redProperty += i.get_name_with_prop_flag() + "(m),"
-                        rc += 1
-                    elif i.color_grp == 2:
-                        greenProperty += i.get_name_with_prop_flag() + "(m),"
-                        gc += 1
-                    elif i.color_grp == 3:
-                        blueProperty += i.get_name_with_prop_flag() + "(m),"
-                        bc += 1
-                    else:
-                        yellowProperty += i.get_name_with_prop_flag() + "(m),"
-                        yc += 1
+                    prop_name_list[i.color_grp-1].append(i.get_name_with_prop_flag() + '(m)')
                 else:
-                    utilityProperty += i.name + "(m),"
-                    uc += 1
-        if redProperty != "":
-            out += "R:%s" % redProperty
-        if greenProperty != "":
-            out += "G:%s" % greenProperty
-        if blueProperty != "":
-            out += "B:%s" % blueProperty
-        if yellowProperty != "":
-            out += "Y:%s" % yellowProperty
-        if utilityProperty != "":
-            out += "U:%s" % utilityProperty
-        out = "R:%d, G:%d, B:%d, Y:%d, U:%d ##" % (rc, gc, bc, yc, uc) + out
-        return out   
-    
+                    prop_name_list[4].append(i.name)
+            else: pass
+        return (", ".join(['%s:%d' % (color_code[i], len(prop_name_list[i])) for i in range(5)]) + " ## " 
+                + ' '.join(['%s:%s' % (color_code[i], ",".join(prop_name_list[i])) for i in range(5) if len(prop_name_list[i]) > 0])) 
+               
     def sell_asset_to_player(self, player_id, asset_id):
         asset = self.get_asset_by_assetid(asset_id)
         if asset.owner == 0:
