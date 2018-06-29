@@ -9,24 +9,31 @@ fH = open(logPath, 'w')
 fH.close()
 p = Printer(logPath)
 # initial Game Start Menu
-gameStartMenu = MenuBox("Start Game:", logPath)
-gameStartMenu.addOptions(["4 Player ", "3 Player ", "2 Player "])
-optionRecv = gameStartMenu.runMenu() # simulation
-#optionRecv = 3 # simulation line
-if optionRecv != 4:
-    GameController = Smartcontroller(5-optionRecv, logPath)
-    # GameController.db_populate()
-    optionGameRecv = GameController.state
-    chanceCount = 0    
-    GameController.display_board()
-    GameController.print_all_player_assets_table()
-    try:
-        while optionGameRecv:
-            chanceCount += 1
-            GameController.next_move(chanceCount)
-            optionGameRecv = GameController.state
-    except KeyboardInterrupt:
-        p.printer("\nYou ended the game abruptly. Game Drawn.")
+gameretrieve = MenuBox("MONOPOLY GAME")
+gameretrieve.addOptions(["Retrieve saved game", "New Game"])
+option = gameretrieve.runMenu()
+if option == 1:
+    pass
+elif option == 2:
+    gameStartMenu = MenuBox("Start Game:", logPath)
+    gameStartMenu.addOptions(["4 Player ", "3 Player ", "2 Player "])
+    optionRecv = gameStartMenu.runMenu()
+    if optionRecv != 4:
+        GameController = Smartcontroller(5-optionRecv, logPath)
+        GameController.db_populate()
+        optionGameRecv = GameController.state
+        chanceCount = 0    
+        GameController.display_board()
+        GameController.print_all_player_assets_table()
+        try:
+            while optionGameRecv:
+                chanceCount += 1
+                GameController.next_move(chanceCount)
+                optionGameRecv = GameController.state
+        except KeyboardInterrupt:
+            p.printer("\nYou ended the game abruptly. Game Drawn.")
+    else:
+        p.printer("Exiting.")  
 else:
-    p.printer("Exiting.")  
-
+    p.printer("Exiting.")
+    

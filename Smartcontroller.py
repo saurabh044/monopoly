@@ -481,34 +481,34 @@ class Smartcontroller(object):
             self.logObj.printer("Done.")    
             
     def save_game(self):
-        dx = DBhandler(username='root', password='root')
-        if dx.isDBexist('monopoly_game_db') == 1:
-            dx.dropDB('monopoly_game_db')
         self.logObj.printer("Saving game data into database...")
-        dx.createDB("monopoly_game_db")
-        dx.createTable('monopoly_game_db', 'player', ['id', 'name', 'active', 'board_pos', 'isavailable', 'isturnholder'],
-                        ['tinyint primary key', 'varchar(30)', 'tinyint', 'tinyint', 'tinyint', 'tinyint'])
-        dx.createTable('monopoly_game_db', 'countries', ['board_loc', 'owner', 'current_rent', 'prop_count', 'prop_vacancy', 'prop_sell'],
-                       ['tinyint primary key', 'tinyint', 'int', 'tinyint', 'tinyint', 'tinyint'])
-        dx.createTable('monopoly_game_db', 'utilities', ['board_loc', 'owner', 'current_rent'], ['tinyint primary key', 'tinyint', 'int'])
-        dx.createTable('monopoly_game_db', 'accounts', ['id', 'balance', 'state'],
-                       ['tinyint primary key', 'int', 'tinyint'])
-        for i in self.players:
-            isavail, isturn = 0, 0
-            if i.id in self.available_players_id: isavail = 1
-            if i.id == self.turnHolderPlayerID: isturn = 1
-            data = i.state() + (isavail, isturn)
-            dx.insertintoDB('monopoly_game_db', "INSERT INTO player values (%d, \'%s\', %d, %d, %d, %d)" % data)
-
-        
-        
-        
-        
-        
-        
-        
-        
-        
+        try:
+            dx = DBhandler(username='root', password='root')
+            if dx.isDBexist('monopoly_game_db') == 1:
+                dx.dropDB('monopoly_game_db')
+            dx.createDB("monopoly_game_db")
+            dx.createTable('monopoly_game_db', 'player', ['id', 'name', 'active', 'board_pos', 'isavailable', 'isturnholder'],
+                            ['tinyint primary key', 'varchar(30)', 'tinyint', 'tinyint', 'tinyint', 'tinyint'])
+            dx.createTable('monopoly_game_db', 'countries', ['board_loc', 'owner', 'current_rent', 'prop_count', 'prop_vacancy', 'prop_sell'],
+                           ['tinyint primary key', 'tinyint', 'int', 'tinyint', 'tinyint', 'tinyint'])
+            dx.createTable('monopoly_game_db', 'utilities', ['board_loc', 'owner', 'current_rent'],
+                           ['tinyint primary key', 'tinyint', 'int'])
+            dx.createTable('monopoly_game_db', 'accounts', ['id', 'balance', 'state'],
+                           ['tinyint primary key', 'int', 'tinyint'])
+            for i in self.players:
+                isavail, isturn = 0, 0
+                if i.id in self.available_players_id: isavail = 1
+                if i.id == self.turnHolderPlayerID: isturn = 1
+                dx.insertintoDB('monopoly_game_db', "INSERT INTO player values (%d, \'%s\', %d, %d, %d, %d)" % (i.state() + (isavail, isturn)))
+    
+            for i in self.Banker.asset_list:
+                if i.issite():
+                    dx.insertintoDB('monopoly_game_db', "INSERT INTO countries values (%d, %d, %d, %d, %d, %d)" % i.state())
+                else:
+                    dx.insertintoDB('monopoly_game_db', "INSERT INTO utilities values (%d, %d, %d)" % i.state())
             
-
-        
+            for i in self.Banker.accounts:
+                dx.insertintoDB('monopoly_game_db', "INSERT INTO accounts values (%d, %d, %d)" % i.acc_state())
+            self.logObj.printer("Current game saved into database.")
+        except ValueError:
+            self.logObj.printer("Unable to log into the database.")

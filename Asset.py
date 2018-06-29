@@ -56,7 +56,7 @@ class Country(Asset):
         return self.name + prefix
     
     def state(self):
-        return (self.board_loc, self.current_rent, self.prop_count, self.prop_vacancy, self.prop_sell)
+        return (self.board_loc, self.owner, self.current_rent, self.prop_count, self.prop_vacancy, self.prop_sell)
             
         
 class Utility(Asset):
@@ -73,4 +73,4 @@ class Utility(Asset):
         return True
     
     def state(self):
-        return (self.board_loc, self.current_rent)
+        return (self.board_loc, self.owner, self.current_rent)
