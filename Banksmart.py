@@ -25,8 +25,8 @@ class Account(object):
     def deactivate(self):
         self.state = False   
      
-    def set_statement_filename(self, fname):
-        self.transaction_statement.set_log_file_name(fname)
+    def set_statement_filename(self, fname, mode):
+        self.transaction_statement.set_log_file_name(fname, mode)
         self.transaction_statement.file_only_printer("{: >60} {: >8} {: >8} {: >8}".format("Transaction Details",
                                                                                            "Debit", "Credit", "Balance"))
         
@@ -49,17 +49,17 @@ class Banksmart(object):
         self.id = id
         self.asset_list = []
         self.accounts = [Account(0, "Bank")]
-        self.accounts[0].set_statement_filename("./business_game_logs/Bank_account_statement.txt")
         self.logPath = logPath
         self.logObj = Printer(self.logPath)
         self.PlayerBuyMenu = MenuBox("Buy Menu", self.logPath)
         self.PlayerBuyMenu.addOption("Want to buy")
         self.PlayerMortMenu = MenuBox('Cash Raise Menu', self.logPath)
         
-    def add_players_accounts(self, player_count):
+    def add_players_accounts(self, player_count, mode='w'):
+        self.accounts[0].set_statement_filename("./business_game_logs/Bank_account_statement.txt", mode)
         for i in range(player_count):
             account_var = Account(i+1, "PL-%d" % (i+1))
-            account_var.set_statement_filename("./business_game_logs/Player-%d_account_statement.txt" % (i+1))
+            account_var.set_statement_filename("./business_game_logs/Player-%d_account_statement.txt" % (i+1), mode)
             self.accounts.append(account_var) 
             
     def get_players_balance(self, player_id):
@@ -228,7 +228,7 @@ class Banksmart(object):
                 player_buyconsent = self.PlayerBuyMenu.runMenu()  # This auto_runMenu statement is for simulation purpose.
                 if player_buyconsent == 1:
                     self.accounts[player_id].withdraw(asset.buy_price, "Asset %s purchase from Bank" % asset.name)
-                    self.accounts[0].deposit(asset.buy_price, "Asset %s sale to %s" % (asset.name, player_id))
+                    self.accounts[0].deposit(asset.buy_price, "Asset %s sale to Player-%d" % (asset.name, player_id))
                     asset.owner = player_id
                     self.prop_vacancy_set(player_id, asset)
                     self.logObj.printer("Purchase done")    

@@ -8,12 +8,7 @@ class Smartplayer(object):
         self.logObj = Printer(logPath)
         self.board_pos = 1
         self.transaction_statement = Printer()
-        
-    def set_statement_filename(self, fname, mode='w'):
-        self.transaction_statement.set_log_file_name(fname, mode)
-        self.transaction_statement.file_only_printer("{: >60} {: >8} {: >8} {: >8}".format("Transaction Details",
-                                                                                           "Debit", "Credit", "Balance"))
-    
+          
     def move(self, value):
         self.board_pos += value
         if self.board_pos > 36:

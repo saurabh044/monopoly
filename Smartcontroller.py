@@ -87,12 +87,6 @@ class Smartcontroller(object):
         # key value array of Utility [boardPosition, buyValue, mortgageValue]
         self.utility_name_list = ["Waterways", "Satellite", "Airways", "Roadways", "Petroleum", "Railways"]
         self.Banker = Banksmart(0, self.logPath)
-        # Initialize the bank cash reserve with $1000000
-        self.Banker.accounts[0].deposit(1000000, "Cash reserved to bank")
-        self.Banker.add_players_accounts(self.player_count)
-        # Initial payment of $25000 to all the players for starting the game 
-        for i in range(self.player_count):
-            res = self.Banker.payreward(i+1, 25000, "Initial Payment")
         for i in country_list:
             self.Banker.asset_list.append(Country(country_list[i][0], i,
                                              country_list[i][1],
@@ -151,7 +145,7 @@ class Smartcontroller(object):
             iscrossover = turnplayer.move(dice_out)
             if iscrossover:
                 self.logObj.printer("You received crossover payment of $%d" % Smartcontroller.crossover_amount)
-                res = self.Banker.payreward(turnplayer.id, Smartcontroller.crossover_amount, 'Crossover payment')
+                res = self.Banker.payreward(turnplayer.id, Smartcontroller.crossover_amount, 'Crossover payment to Player-%d' % turnplayer.id)
                 self.bank_response_action(res)
             ownerID = self.get_property_owner_where_player_standing(turnplayer)
             if ownerID == -1:
@@ -160,10 +154,10 @@ class Smartcontroller(object):
                 elif turnplayer.board_pos == 17 or turnplayer.board_pos == 30:  # CHANCE
                     self.apply_chance_to_player(turnplayer.id, dice_out)
                 elif turnplayer.board_pos == 14:  # custom duty
-                    res = self.Banker.p2ptransaction(turnplayer.id, 0, -1, "custom duty")
+                    res = self.Banker.p2ptransaction(turnplayer.id, 0, -1, "Custom Duty - Player-%d" % turnplayer.id)
                     self.bank_response_action(res)
                 elif turnplayer.board_pos == 22:  # travelling duty
-                    res = self.Banker.p2ptransaction(turnplayer.id, 0, -1, "travelling duty")
+                    res = self.Banker.p2ptransaction(turnplayer.id, 0, -1, "Travelling Duty - Player-%d" % turnplayer.id)
                     self.bank_response_action(res)
                 elif turnplayer.board_pos == 28:  # JAIL
                     self.gotojail(turnplayer.id)
@@ -299,13 +293,13 @@ class Smartcontroller(object):
                 self.bank_response_action(res)
 
     def enjoyment_in_resort(self, player_id):
-        self.transmit_from_one_to_rest(player_id, 200, "Resort money")
+        self.transmit_from_one_to_rest(player_id, 200, "Resort money - Player-%d" % player_id)
 
     def get_party_from_others(self, player_id):
-        self.receive_from_all_to_one(player_id, 200, "Reached party house")
+        self.receive_from_all_to_one(player_id, 200, "Party House - Player-%d" % player_id)
 
     def gotojail(self,player_id):
-        res = self.Banker.p2ptransaction(player_id, 0, 100, "Reached on Jail")
+        res = self.Banker.p2ptransaction(player_id, 0, 100, "Reached to Jail - Player-%d" % player_id)
         self.bank_response_action(res)
         
     def check_all_player_presence_on_a_position(self, board_pos):
@@ -314,51 +308,51 @@ class Smartcontroller(object):
     def apply_uno_to_player(self, recipient, rule_num):
         if rule_num == 2:
             self.logObj.printer("UNO-2: It is your anniversary, collect $500 from each player.")
-            self.receive_from_all_to_one(recipient, 500, "UNO-2: Anniversary gift.")
+            self.receive_from_all_to_one(recipient, 500, "UNO-2: Anniversary gift - Player-%d" % recipient)
         elif rule_num == 4:
             self.logObj.printer("UNO-4: 1st prize in Beauty Contest of $2500.")
-            res = self.Banker.payreward(recipient, 2500, "UNO-4, Won Beauty Contest")
+            res = self.Banker.payreward(recipient, 2500, "UNO-4, Won Beauty Contest - Player-%d" % recipient)
             self.bank_response_action(res)
         elif rule_num == 6:
             self.logObj.printer("UNO-6: Income tax refund of $2000.")
-            res = self.Banker.payreward(recipient, 2000, "UNO-6, IT refund")
+            res = self.Banker.payreward(recipient, 2000, "UNO-6, IT refund - Player-%d" % recipient)
             self.bank_response_action(res)
         elif rule_num == 8:
             self.logObj.printer("UNO-8: Go to party house and collect $200 from each player.")
-            self.receive_from_all_to_one(recipient, 200, "UNO-8: Party house")
+            self.receive_from_all_to_one(recipient, 200, "UNO-8: Party house - Player-%d" % recipient)
             for i in self.players:
                 if i.id == recipient:
                     i.jump(19)
         elif rule_num == 10:
             self.logObj.printer("UNO-10: Receive interest on shares of $1500.")
-            res = self.Banker.payreward(recipient, 1500, "UNO-10: shares interest")
+            res = self.Banker.payreward(recipient, 1500, "UNO-10: shares interest - Player-%d" % recipient)
             self.bank_response_action(res)
         elif rule_num == 12:
             self.logObj.printer("UNO-12: Receive amount of $3000 after sale of stocks.")
-            res = self.Banker.payreward(recipient, 3000, "UNO-12: sale of stocks")
+            res = self.Banker.payreward(recipient, 3000, "UNO-12: sale of stocks - Player-%d" % recipient)
             self.bank_response_action(res)
         elif rule_num == 3:
             self.logObj.printer("UNO-3: Go to jail with $500 fine")
-            res = self.Banker.p2ptransaction(recipient, 0, 500, "UNO-3: Sent to Jail.")
+            res = self.Banker.p2ptransaction(recipient, 0, 500, "UNO-3: Sent to Jail - Player-%d" % recipient)
             self.bank_response_action(res)
             for i in self.players:
                 if i.id == recipient:
                     i.jump(28)
         elif rule_num == 5:
             self.logObj.printer("UNO-5: School and medical fees expenses of $2500.")
-            res = self.Banker.p2ptransaction(recipient, 0, 2500, "UNO-5: School Fees.")
+            res = self.Banker.p2ptransaction(recipient, 0, 2500, "UNO-5: School Fees - Player-%d" % recipient)
             self.bank_response_action(res)
         elif rule_num == 7:
             self.logObj.printer("UNO-7: Submit your passport and pay $5000 fine.")
-            res = self.Banker.p2ptransaction(recipient, 0, 5000, "UNO-7: Passport Deposit")
+            res = self.Banker.p2ptransaction(recipient, 0, 5000, "UNO-7: Passport Deposit - Player-%d" % recipient)
             self.bank_response_action(res)
         elif rule_num == 9:
             self.logObj.printer("UNO-9: Make general repair on your properties of $100")
-            res = self.Banker.p2ptransaction(recipient, 0,  100, "UNO-9: Repair")
+            res = self.Banker.p2ptransaction(recipient, 0,  100, "UNO-9: Repair - Player-%d" % recipient)
             self.bank_response_action(res)            
         elif rule_num == 11:
             self.logObj.printer("UNO-11: Pay insurance premium of $1500.")
-            res = self.Banker.p2ptransaction(recipient, 0, 1500, "UNO-11, Insurance Premium")
+            res = self.Banker.p2ptransaction(recipient, 0, 1500, "UNO-11, Insurance Premium - Player-%d" % recipient)
             self.bank_response_action(res) 
         else:
             pass
@@ -366,50 +360,50 @@ class Smartcontroller(object):
     def apply_chance_to_player(self, recipient, rule_num):
         if rule_num == 2:
             self.logObj.printer("Chance-2: Loss in share market of $2000.")
-            res = self.Banker.p2ptransaction(recipient, 0, 2000, "Chance-2: Loss in share market")
+            res = self.Banker.p2ptransaction(recipient, 0, 2000, "Chance-2: Loss in share - Player-%d" % recipient)
             self.bank_response_action(res) 
         elif rule_num == 4:
             self.logObj.printer("Chance-4: Fine for accident due to wrong driving of $1000")
-            res = self.Banker.p2ptransaction(recipient, 0, 1000, "Chance-4: Driving fine")
+            res = self.Banker.p2ptransaction(recipient, 0, 1000, "Chance-4: Driving fine - Player-%d" % recipient)
             self.bank_response_action(res) 
         elif rule_num == 6:
             self.logObj.printer("Chance-6: House repair of $1500.")
-            res = self.Banker.p2ptransaction(recipient, 0, 1500, "Chance-6: House repair")
+            res = self.Banker.p2ptransaction(recipient, 0, 1500, "Chance-6: House repair - Player-%d" % recipient)
             self.bank_response_action(res) 
         elif rule_num == 8:
             self.logObj.printer("Chance-8: Loss of $3000 due to fire in Go-down.")
-            res = self.Banker.p2ptransaction(recipient, 0, 3000, "Chance-8: Loss due to fire")
+            res = self.Banker.p2ptransaction(recipient, 0, 3000, "Chance-8: Loss due to fire - Player-%d" % recipient)
             self.bank_response_action(res)             
         elif rule_num == 10:
             self.logObj.printer("Chance-10: Go to jail.")
-            res = self.Banker.p2ptransaction(recipient, 0, 500, "Chance-10: Sent to jail")
+            res = self.Banker.p2ptransaction(recipient, 0, 500, "Chance-10: Sent to jail - Player-%d" % recipient)
             self.bank_response_action(res)             
             for i in self.players:
                 if i.id == recipient:
                     i.jump(28)
         elif rule_num == 12:
             self.logObj.printer("Chance-12: Repair of your car of $200.")
-            res = self.Banker.p2ptransaction(recipient, 0, 200, "Chance-12: Car repair")
+            res = self.Banker.p2ptransaction(recipient, 0, 200, "Chance-12: Car repair - Player-%d" % recipient)
             self.bank_response_action(res)             
         elif rule_num == 3:
             self.logObj.printer("Chance-3: Won lottery prize of $2500.")
-            res = self.Banker.payreward(recipient, 2500, "Chance-3: won lottery")
+            res = self.Banker.payreward(recipient, 2500, "Chance-3: won lottery - Player-%d" % recipient)
             self.bank_response_action(res) 
         elif rule_num == 5:
             self.logObj.printer("Chance-5: You have won cross-word prize of $1000.")
-            res = self.Banker.payreward(recipient, 1000, "Chance-5: won cross-word")
+            res = self.Banker.payreward(recipient, 1000, "Chance-5: won cross-word - Player-%d" % recipient)
             self.bank_response_action(res) 
         elif rule_num == 7:
             self.logObj.printer("Chance-7: Collect $100 rent from each player for all of your site.")
             amount = self.Banker.get_players_countries(recipient) * 100
-            self.receive_from_all_to_one(recipient, amount, "Chance-7: Rent collection")
+            self.receive_from_all_to_one(recipient, amount, "Chance-7: Rent collection - Player-%d" % recipient)
         elif rule_num == 9:
             self.logObj.printer("Chance-9: You have won the jackpot of $2000.")
-            res = self.Banker.payreward(recipient, 2000, "Chance-9: won jackpot")
+            res = self.Banker.payreward(recipient, 2000, "Chance-9: won jackpot - Player-%d" % recipient)
             self.bank_response_action(res) 
         elif rule_num == 11:
             self.logObj.printer("Chance-11: Prize for best performance in export of $1500.")
-            res = self.Banker.payreward(recipient, 1500, "Chance-11: Best exporter")
+            res = self.Banker.payreward(recipient, 1500, "Chance-11: Best exporter - Player-%d" % recipient)
             self.bank_response_action(res)             
         else:
             pass
@@ -486,7 +480,12 @@ class Smartcontroller(object):
             inp = raw_input("Enter name for Player-%d : " % (i+1)) 
             self.players.append(Smartplayer(i+1, str(inp), self.logPath)) 
             self.available_players_id.append(i+1)
-            self.players[i].set_statement_filename("./business_game_logs/Player-%d_account_statement.txt" % (i+1))
+        # Initialize the bank cash reserve with $1000000
+        self.Banker.add_players_accounts(self.player_count)
+        self.Banker.accounts[0].deposit(1000000, "Cash reserved to bank")
+        # Initial payment of $25000 to all the players for starting the game 
+        for i in range(self.player_count):
+            res = self.Banker.payreward(i+1, 25000, "Initial Payment - Player-%d" % (i+1)) 
 
     def save_game(self, chance_count):
         self.logObj.printer("Saving game data into database...")
@@ -546,9 +545,8 @@ class Smartcontroller(object):
                 self.available_players_id.append(i[0])
             if i[5] > 0:
                 self.turnHolderPlayerID = i[0]
-            self.players[i[0]-1].set_statement_filename("./business_game_logs/Player-%d_account_statement.txt" % i[0], 'a')
-            self.players[i[0]-1].change_state((bool(i[2]), i[3]))
-                        
+            self.players[i[0]-1].change_state((bool(i[2]), i[3]))                        
+        self.Banker.add_players_accounts(self.player_count, 'a')
         x = dx.queryDB('monopoly_game_db', 'SELECT * from accounts')
         for i in x:
             self.Banker.accounts[i[0]].change_state((i[1], bool(i[2])))

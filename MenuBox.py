@@ -23,7 +23,7 @@ class Printer(object):
         fh.write("%s\n" % inp_text)
         fh.close()
 
-    def set_log_file_name(self, filename, mode):
+    def set_log_file_name(self, filename, mode='w'):
         self.LogFileName = filename
         fh = open(self.LogFileName, mode)
         fh.close()
