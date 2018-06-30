@@ -53,7 +53,7 @@ class DBhandler(object):
             conn.close()
         except mysql.connector.Error as err:
             # print the MySQL error on standard output
-            DBhandler.printError(err)
+            #DBhandler.printError(err)
             # if connection fails, raise ValueError exception
             raise ValueError
         except AttributeError as err:
