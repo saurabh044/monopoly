@@ -71,10 +71,14 @@ class Dice(object):
 class Smartcontroller(object):
 
     crossover_amount = 100
-    def __init__(self, player_count, log_path):       
+    def __init__(self, player_count, log_path, user=None, password=None):       
         self.logPath = log_path
-        self.PlayerMenu = MenuBox("Player Menu", self.logPath)
-        self.PlayerMenu.addOptions(["Continue", "Redeem", "Build Property", "Sell Property", "Show Asset Info", "Save Game"])
+        self.dbuser = user
+        self.dbpassword = password
+        self.PlayerMenu = MenuBox("Player Menu", self.logPath, 0)
+        self.PlayerMenu.addOptions(["Continue", "Redeem", "Build Property", "Sell Property", "Show Asset Info", "Quit Game"])
+        if self.dbuser is not None:
+            self.PlayerMenu.addOption('Save Game')
         self.PlayerBuyMenu = MenuBox("Buy Menu", self.logPath)
         self.PlayerBuyMenu.addOption("Want to buy")
         
@@ -224,18 +228,19 @@ class Smartcontroller(object):
                         else:
                             self.logObj.printer('Input asset code is not valid. Please check the board.')
                     elif optionPlayerRecv == 6:
+                        self.logObj.printer('Player-%d (%s) is leaving the game.' % (self.turnHolderPlayerID, turnplayer.name))
+                        self.logObj.printer('Only %d players left in the game' % (len(self.available_players_id)-1))
+                        self.remove_player_from_game(self.turnHolderPlayerID)
+                        self.display_board()
+                        self.print_all_player_assets_table()
+                    elif optionPlayerRecv == 7:
                         if len(self.available_players_id) > 1: 
                             self.save_game(chance)
                         else:
                             self.logObj.printer("Game already finished. It can not be saved.")
                         self.state = False
                     else:
-                        self.logObj.printer('Player-%d (%s) is leaving the game.' % (self.turnHolderPlayerID, turnplayer.name))
-                        self.logObj.printer('Only %d players left in the game' % (len(self.available_players_id)-1))
-                        self.remove_player_from_game(self.turnHolderPlayerID)
-                        self.display_board()
-                        self.print_all_player_assets_table()
-                        
+                        pass
 
     def print_all_player_assets_table(self):
         total_cash_reserver = 0
@@ -497,7 +502,7 @@ class Smartcontroller(object):
     def save_game(self, chance_count):
         self.logObj.printer("Saving game data into database...")
         try:
-            dx = DBhandler(username='root', password='root')
+            dx = DBhandler(self.dbuser, self.dbpassword)
             if dx.isDBexist('monopoly_game_db') == 1:
                 dx.dropDB('monopoly_game_db')
             dx.createDB("monopoly_game_db")
@@ -534,7 +539,7 @@ class Smartcontroller(object):
             assets_board_locations[board_pos] = "|P%d|" % plid
 
     def setprevgame(self):
-        dx = DBhandler(username='root', password='root') 
+        dx = DBhandler(self.dbuser, self.dbpassword) 
         x = dx.queryDB('monopoly_game_db', 'SELECT * from countries')
         for i in x:
             self.Banker.get_asset_by_assetid(i[0]).change_state((i[1], i[2], i[3], bool(i[4]), bool(i[5])))

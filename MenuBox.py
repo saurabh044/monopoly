@@ -52,7 +52,7 @@ class MenuBox(object):
                         selection = int(inp)
                         self.logObj.printer("You selected option #%s" % inp)
                     else:
-                        self.logObj.printer("You entered %s, please enter valid option." % inp)
+                        self.logObj.printer("Please enter valid option.")
                 else:
-                    self.logObj.printer("You entered %s, please enter valid option." % inp)
+                    self.logObj.printer("Please enter valid option.")
             return selection       
