@@ -1,6 +1,5 @@
 from Smartcontroller import Smartcontroller
-from MenuBox import MenuBox
-from Printer import Printer
+from MenuBox import MenuBox, Printer
 import os
 from cmdbtester import DBhandler
 

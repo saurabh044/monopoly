@@ -1,4 +1,4 @@
-from Printer import Printer
+from MenuBox import Printer
 class Smartplayer(object):
     
     def __init__(self, id, name, logPath, active=True):

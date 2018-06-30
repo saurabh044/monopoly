@@ -1,13 +1,9 @@
-from MenuBox import MenuBox
+from MenuBox import MenuBox, Printer, Dice
 from Banksmart import Banksmart
 from Smartplayer import Smartplayer
-from Asset import Country 
-from Asset import Utility
+from Asset import Country, Utility
 from cmdbtester import DBhandler
 import re
-from Printer import Printer
-import random
-from mysql.connector.constants import flag_is_set
 
 # Game Board Data
 # key value array of country [boardPosition, buyValue, mortgageValue, colorGroup, basicRent, property_price, property_rent]
@@ -60,14 +56,7 @@ assets_board_locations = { 2: "",  3: "",  4: "",  6: "",
                           24: "", 25: "", 27: "", 29: "",
                           31: "", 32: "", 33: "", 34: "",
                           35: "", 36: ""}
-        
-class Dice(object):
-
-    def throw_dice(self):
-        out = random.randint(2, 12)
-        return out
-  
-    
+            
 class Smartcontroller(object):
 
     crossover_amount = 100

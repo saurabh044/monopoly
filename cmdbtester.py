@@ -4,18 +4,7 @@ import subprocess
 import re
 import platform
 
-
 class cursor_cm(object):
-    '''
-    This is context manager class for creating and closing the MySQL cursor
-    of the connection object.
-
-    Arguments:
-    username: DB user name
-    password: DB password
-    database: DB name (optional, Default=None)
-
-    '''
 
     def __init__(self, username, password, database=None):
         self.__username = username
@@ -34,16 +23,8 @@ class cursor_cm(object):
         self.connObj.commit()
         self.connObj.close()
 
-
 class DBhandler(object):
-    '''
-    This is DBHandler class
-
-    Arguments:
-    username: DB user name
-    password: DB password
-    '''
-
+    
     def __init__(self, username, password):
         try:
             # validate the user name/password by connecting MySQL Server
@@ -52,9 +33,6 @@ class DBhandler(object):
                                            password=password)
             conn.close()
         except mysql.connector.Error as err:
-            # print the MySQL error on standard output
-            #DBhandler.printError(err)
-            # if connection fails, raise ValueError exception
             raise ValueError
         except AttributeError as err:
             print(err)
@@ -67,13 +45,6 @@ class DBhandler(object):
             self.database = None
 
     def isDBexist(self, database):
-        '''
-        This is method for checking if the specified database exist.
-
-        Arguments:
-        database (string): Database name
-
-        '''
         # make a connection with current user name/password and database
         try:
             cnxn = mysql.connector.connect(user=self.__username,
@@ -87,39 +58,7 @@ class DBhandler(object):
             # DBhandler.printError(err)
             return -1
 
-    def setDBname(self, database):
-        '''
-        This is method for setting database name to DBHandler object.
-
-        Arguments:
-        database (string): Database name
-
-        '''
-        # If the specified DB exist
-        if self.isDBexist(database) == 1:
-            # set the self.database to specified database
-            self.database = database
-        else:
-            # print the error
-            print "ERROR: Can not set database to \'%s\'" % database
-
-    def getDBname(self):
-        '''
-        This is the method to get the database name from the DBHandler object
-
-        No Arguments.
-
-        '''
-        return self.database
-
     def createDB(self, database):
-        '''
-        This is method for creating specified database.
-
-        Arguments:
-        database (string): Database name
-
-        '''
         # if DB already exists return with 0
         if self.isDBexist(database) == 1:
             return 0
@@ -138,13 +77,6 @@ class DBhandler(object):
                     return -1
 
     def dropDB(self, database):
-        '''
-        This is method for dropping specified database.
-
-        Arguments:
-        database (string): Database name
-
-        '''
         # if specified DB does not exist return 0
         if self.isDBexist(database) == -1:
             return 0
@@ -164,30 +96,6 @@ class DBhandler(object):
                     # if exception above, print MySQL error and return -1
                     DBhandler.printError(err)
                     return -1
-
-    def backupDB(self, database):
-        '''
-        This is method for taking backup of specified database.
-
-        Arguments:
-        database (string): Database name
-
-        '''
-        # if specified database exists
-        if self.isDBexist(database) == 1:
-            dbdump = subprocess.Popen(["mysqldump", '-u', self.__username,
-                                       '-p%s' % self.__password,
-                                       "--databases", database],
-                                      stdout=subprocess.PIPE,
-                                      stderr=subprocess.PIPE)
-            # run the command and get the output and error code
-            (output, msg) = dbdump.communicate()
-            # print warning message if any coming while running mysqldump
-            print "WARN: %s" % msg
-            # if no error, write the output in backup file
-            if dbdump.returncode == 0:
-                with open("%s.sql" % database, 'w') as bkp:
-                    bkp.write(output)
 
     # method for creating a table in specified database
     def createTable(self, database, tablename, columns, datatype):
@@ -288,10 +196,6 @@ class DBhandler(object):
             print "ERROR: Only insert or update method is allowed in "\
                   "insertintoDB method"
             return -1
-
-    # method to delete the DBHandler object
-    def __del__(self):
-        pass
 
     # static method for printing the MySQL error in more readable format
     @staticmethod

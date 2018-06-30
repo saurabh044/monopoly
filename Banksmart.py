@@ -1,5 +1,4 @@
-from Printer import Printer
-from MenuBox import MenuBox
+from MenuBox import MenuBox, Printer
         
 class Account(object):
     

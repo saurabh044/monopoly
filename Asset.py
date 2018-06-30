@@ -6,8 +6,7 @@ class Asset(object):
         self.buy_price = buy_price
         self.mortgage_val = mortgage_value
         self.rent = rent
-        self.owner = 0
-        
+        self.owner = 0        
     
 class Country(Asset):
     
