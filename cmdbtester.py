@@ -248,8 +248,7 @@ class DBhandler(object):
                     # execute the query
                     cur.execute(query)
                     # print the query output
-                    for row in cur:
-                        yield row
+                    return [row for row in cur]
                     # if no exception in above code return 1
                 except mysql.connector.Error as err:
                     # if any exception print error and return -1

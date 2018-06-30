@@ -549,29 +549,3 @@ class Smartcontroller(object):
         x = dx.queryDB('monopoly_game_db', 'SELECT * from accounts')
         for i in x:
             self.Banker.accounts[i[0]].change_state((i[1], bool(i[2])))
-        
-        
-
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

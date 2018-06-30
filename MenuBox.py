@@ -29,7 +29,10 @@ class MenuBox(object):
        
     def simulate(func):
         def wrapper(self, option=0): return func(self, 1)
-        return wrapper        
+        return wrapper  
+    
+    def getoptioncount(self):      
+        return len(self.optionList) + self.withExit
 
     #@simulate
     def runMenu(self, option=0):

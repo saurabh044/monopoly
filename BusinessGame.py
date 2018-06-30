@@ -19,9 +19,9 @@ if option == 1:
     dx = DBhandler(username='root', password='root')
     if dx.isDBexist('monopoly_game_db') == 1:
         x = dx.queryDB('monopoly_game_db', 'SELECT count(*) from player')
-        players_count = next(x)[0]
+        players_count = x[0][0]
         x = dx.queryDB('monopoly_game_db', 'select isturnholder from player where isturnholder > 0')
-        chanceCount = next(x)[0]
+        chanceCount = x[0][0]
         GameController = Smartcontroller(players_count, logPath)
         GameController.setprevgame() 
         optionRecv = 5 - players_count

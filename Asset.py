@@ -48,7 +48,7 @@ class Country(Asset):
         
     def get_name_with_prop_flag(self):
         if 1 <= self.prop_count <= 3:
-            prefix = "(h" + str(self.prop_counter) + ")"
+            prefix = "(h" + str(self.prop_count) + ")"
         elif self.prop_count == 4:
             prefix = "(ht)"
         else:
