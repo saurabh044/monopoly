@@ -39,7 +39,6 @@ else:
     p.printer("Exiting.") 
 
 if optionRecv != 4:
-    GameController.db_populate()
     optionGameRecv = GameController.state
     GameController.display_board()
     GameController.print_all_player_assets_table()
