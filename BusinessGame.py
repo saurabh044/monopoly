@@ -17,13 +17,16 @@ optionRecv = 4
 option = gameretrieve.runMenu()
 if option == 1:
     dx = DBhandler(username='root', password='root')
-    x = dx.queryDB('monopoly_game_db', 'SELECT count(*) from player')
-    players_count = next(x)[0]
-    x = dx.queryDB('monopoly_game_db', 'select isturnholder from player where isturnholder > 0')
-    chanceCount = next(x)[0]
-    GameController = Smartcontroller(players_count, logPath)
-    GameController.setprevgame() 
-    optionRecv = 5 - players_count 
+    if dx.isDBexist('monopoly_game_db') == 1:
+        x = dx.queryDB('monopoly_game_db', 'SELECT count(*) from player')
+        players_count = next(x)[0]
+        x = dx.queryDB('monopoly_game_db', 'select isturnholder from player where isturnholder > 0')
+        chanceCount = next(x)[0]
+        GameController = Smartcontroller(players_count, logPath)
+        GameController.setprevgame() 
+        optionRecv = 5 - players_count
+    else:
+        p.printer("Unable to retrieve any saved game.") 
 elif option == 2:
     gameStartMenu = MenuBox("Start Game:", logPath)
     gameStartMenu.addOptions(["4 Player ", "3 Player ", "2 Player "])
