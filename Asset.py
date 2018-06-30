@@ -23,10 +23,7 @@ class Country(Asset):
     
     def issite(self):
         return True
-    
-    def isutil(self):
-        return False
-    
+
     @property
     def prop_count(self):
         return self._prop_count
@@ -86,9 +83,6 @@ class Utility(Asset):
         
     def issite(self):
         return False
-    
-    def isutil(self):
-        return True
     
     def state(self):
         return (self.board_loc, self.owner, self.current_rent)
