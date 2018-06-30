@@ -6,8 +6,6 @@ from cmdbtester import DBhandler
 if not os.path.exists("business_game_logs"):
     os.makedirs("business_game_logs")
 logPath = "./business_game_logs/business.logs"
-fH = open(logPath, 'w')
-fH.close()
 p = Printer(logPath)
 dbuser = raw_input("Enter the username for MySQL DB (default root): ")
 if dbuser == "":
@@ -33,12 +31,14 @@ if dx is not None:
             players_count = x[0][0]
             x = dx.queryDB('monopoly_game_db', 'select isturnholder from player where isturnholder > 0')
             chanceCount = x[0][0]
+            with open(logPath, 'a') as fH: pass
             GameController = Smartcontroller(players_count, logPath, dbuser, dbpassword)
             GameController.setprevgame() 
             optionRecv = 5 - players_count
         else:
             p.printer("Unable to retrieve any saved game.") 
     elif option == 2:
+        with open(logPath, 'w') as fH: pass
         gameStartMenu = MenuBox("Start Game:", logPath)
         gameStartMenu.addOptions(["4 Player ", "3 Player ", "2 Player "])
         optionRecv = gameStartMenu.runMenu()
@@ -49,6 +49,7 @@ if dx is not None:
     else:
         p.printer("Exiting.") 
 else:
+    with open(logPath, 'w') as fH: pass
     gameStartMenu = MenuBox("Start Game:", logPath)
     gameStartMenu.addOptions(["4 Player ", "3 Player ", "2 Player "])
     optionRecv = gameStartMenu.runMenu()

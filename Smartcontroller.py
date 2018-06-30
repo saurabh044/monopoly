@@ -546,7 +546,7 @@ class Smartcontroller(object):
                 self.available_players_id.append(i[0])
             if i[5] > 0:
                 self.turnHolderPlayerID = i[0]
-            self.players[i[0]-1].set_statement_filename("./business_game_logs/Player-%d_account_statement.txt" % i[0])
+            self.players[i[0]-1].set_statement_filename("./business_game_logs/Player-%d_account_statement.txt" % i[0], 'a')
             self.players[i[0]-1].change_state((bool(i[2]), i[3]))
                         
         x = dx.queryDB('monopoly_game_db', 'SELECT * from accounts')

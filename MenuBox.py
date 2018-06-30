@@ -23,9 +23,9 @@ class Printer(object):
         fh.write("%s\n" % inp_text)
         fh.close()
 
-    def set_log_file_name(self, filename):
+    def set_log_file_name(self, filename, mode):
         self.LogFileName = filename
-        fh = open(self.LogFileName, 'w')
+        fh = open(self.LogFileName, mode)
         fh.close()
 
 class MenuBox(object):
