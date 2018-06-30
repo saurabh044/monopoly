@@ -234,6 +234,7 @@ class Smartcontroller(object):
                         self.logObj.printer('Only %d players left in the game' % (len(self.available_players_id)-1))
                         self.remove_player_from_game(self.turnHolderPlayerID)
                         self.display_board()
+                        self.print_all_player_assets_table()
                         
 
     def print_all_player_assets_table(self):
