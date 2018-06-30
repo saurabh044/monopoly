@@ -82,11 +82,6 @@ class Smartcontroller(object):
         self.players = []
         self.dice = Dice()
         self.available_players_id = []
-        for i in range(self.player_count):
-            inp = raw_input("Enter name for Player-%d : " % (i+1)) # simulation
-            self.players.append(Smartplayer(i+1, str(inp), self.logPath)) 
-            self.available_players_id.append(i+1)
-            self.players[i].set_statement_filename("./business_game_logs/Player-%d_account_statement.txt" % (i+1))
         self.turnHolderPlayerID = 0
         self.BoardData = {}
         self.state = True
@@ -196,7 +191,7 @@ class Smartcontroller(object):
             self.print_all_player_assets_table()
             if self.state:
                 optionPlayerRecv = 0
-                while optionPlayerRecv not in [1, 7] :
+                while optionPlayerRecv not in (1, 7) :
                     optionPlayerRecv = self.PlayerMenu.runMenu()
                     if optionPlayerRecv == 1:
                         self.logObj.printer("Continuing the game...\n")
@@ -207,7 +202,10 @@ class Smartcontroller(object):
                         self.logObj.printer("Player %d wants to build property on his site" % self.turnHolderPlayerID)
                         self.build_property_on_player_site(self.turnHolderPlayerID)
                     elif optionPlayerRecv == 7:
-                        self.save_game()
+                        if len(self.available_players_id) > 1:
+                            self.save_game(chance)
+                        else:
+                            self.logObj.printer("Game already finished. It can not be saved.")
                         self.state = False
                     else:
                         pass
@@ -480,7 +478,14 @@ class Smartcontroller(object):
                                 % (i+1, board_display_data[i], isasset))          
             self.logObj.printer("Done.")    
             
-    def save_game(self):
+    def addplayersingame(self):
+        for i in range(self.player_count):
+            inp = raw_input("Enter name for Player-%d : " % (i+1)) 
+            self.players.append(Smartplayer(i+1, str(inp), self.logPath)) 
+            self.available_players_id.append(i+1)
+            self.players[i].set_statement_filename("./business_game_logs/Player-%d_account_statement.txt" % (i+1))
+
+    def save_game(self, chance_count):
         self.logObj.printer("Saving game data into database...")
         try:
             dx = DBhandler(username='root', password='root')
@@ -488,7 +493,7 @@ class Smartcontroller(object):
                 dx.dropDB('monopoly_game_db')
             dx.createDB("monopoly_game_db")
             dx.createTable('monopoly_game_db', 'player', ['id', 'name', 'active', 'board_pos', 'isavailable', 'isturnholder'],
-                            ['tinyint primary key', 'varchar(30)', 'tinyint', 'tinyint', 'tinyint', 'tinyint'])
+                            ['tinyint primary key', 'varchar(30)', 'tinyint', 'tinyint', 'tinyint', 'int'])
             dx.createTable('monopoly_game_db', 'countries', ['board_loc', 'owner', 'current_rent', 'prop_count', 'prop_vacancy', 'prop_sell'],
                            ['tinyint primary key', 'tinyint', 'int', 'tinyint', 'tinyint', 'tinyint'])
             dx.createTable('monopoly_game_db', 'utilities', ['board_loc', 'owner', 'current_rent'],
@@ -498,7 +503,7 @@ class Smartcontroller(object):
             for i in self.players:
                 isavail, isturn = 0, 0
                 if i.id in self.available_players_id: isavail = 1
-                if i.id == self.turnHolderPlayerID: isturn = 1
+                if i.id == self.turnHolderPlayerID: isturn = chance_count
                 dx.insertintoDB('monopoly_game_db', "INSERT INTO player values (%d, \'%s\', %d, %d, %d, %d)" % (i.state() + (isavail, isturn)))
     
             for i in self.Banker.asset_list:
@@ -512,3 +517,61 @@ class Smartcontroller(object):
             self.logObj.printer("Current game saved into database.")
         except ValueError:
             self.logObj.printer("Unable to log into the database.")
+
+
+    def set_owner_in_asset(self, board_pos, plid):
+        if plid > 0:
+            if plid > 10: plid -= 10
+            assets_board_locations[board_pos] = "|P%d|" % plid
+
+    def setprevgame(self):
+        dx = DBhandler(username='root', password='root') 
+        x = dx.queryDB('monopoly_game_db', 'SELECT * from countries')
+        for i in x:
+            self.Banker.get_asset_by_assetid(i[0]).change_state((i[1], i[2], i[3], bool(i[4]), bool(i[5])))
+            self.set_owner_in_asset(i[0], i[1])
+            
+        x = dx.queryDB('monopoly_game_db', 'SELECT * from utilities')
+        for i in x:
+            self.Banker.get_asset_by_assetid(i[0]).change_state((i[1], i[2]))
+            self.set_owner_in_asset(i[0], i[1])
+            
+        x = dx.queryDB('monopoly_game_db', 'SELECT * from player')
+        for i in x:
+            self.players.append(Smartplayer(i[0], i[1], self.logPath)) 
+            if i[4] == 1:
+                self.available_players_id.append(i[0])
+            if i[5] > 0:
+                self.turnHolderPlayerID = i[0]
+            self.players[i[0]-1].set_statement_filename("./business_game_logs/Player-%d_account_statement.txt" % i[0])
+            self.players[i[0]-1].change_state((bool(i[2]), i[3]))
+                        
+        x = dx.queryDB('monopoly_game_db', 'SELECT * from accounts')
+        for i in x:
+            self.Banker.accounts[i[0]].change_state((i[1], bool(i[2])))
+        
+        
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

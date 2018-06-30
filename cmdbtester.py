@@ -238,7 +238,7 @@ class DBhandler(object):
         '''
         # check for database existence
         if self.isDBexist(database) != 1:
-            return -1
+            return 
         # check if the query is MySQL select/SELECT command or not
         match = re.search(r'^\s*select\s.*', query, re.I)
         if match is not None:
@@ -249,17 +249,14 @@ class DBhandler(object):
                     cur.execute(query)
                     # print the query output
                     for row in cur:
-                        print row
+                        yield row
                     # if no exception in above code return 1
-                    return 1
                 except mysql.connector.Error as err:
                     # if any exception print error and return -1
                     DBhandler.printError(err)
-                    return -1
         else:
             # if the query method is not select then return -1
             print "ERROR: Only select method is allowed for DB query"
-            return -1
 
     # method for modifying the specified database with insert/update command
     def insertintoDB(self, database, query):

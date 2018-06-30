@@ -40,6 +40,9 @@ class Account(object):
 
     def acc_state(self):
         return (self.id, self.balance, self.state)
+    
+    def change_state(self, new_state):
+        (self.balance, self.state) = new_state
         
 class Banksmart(object):
     

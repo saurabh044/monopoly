@@ -57,7 +57,9 @@ class Country(Asset):
     
     def state(self):
         return (self.board_loc, self.owner, self.current_rent, self.prop_count, self.prop_vacancy, self.prop_sell)
-            
+    
+    def change_state(self, new_state):
+        (self.owner, self.current_rent, self.prop_count, self.prop_vacancy, self.prop_sell) = new_state
         
 class Utility(Asset):
     def __init__(self, board_loc, name, buy_price, mortgage_value, rent, pair_rent, grp):
@@ -74,3 +76,7 @@ class Utility(Asset):
     
     def state(self):
         return (self.board_loc, self.owner, self.current_rent)
+    
+    def change_state(self, new_state):
+        (self.owner, self.current_rent) = new_state
+

@@ -31,3 +31,7 @@ class Smartplayer(object):
         
     def state(self):
         return (self.id, self.name, self.active, self.board_pos) 
+    
+    def change_state(self, new_state):
+        (self.active, self.board_pos) = new_state
+        
