@@ -49,7 +49,7 @@ if optionRecv != 4:
             GameController.next_move(chanceCount)
             optionGameRecv = GameController.state
     except KeyboardInterrupt:
-        p.printer("\nYou ended the game abruptly. Game Drawn.")
+        p.printer("\nYou ended the game abruptly and couldn't be saved.")
 else:
     p.printer("Exiting the game.")  
 

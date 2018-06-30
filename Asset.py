@@ -61,6 +61,22 @@ class Country(Asset):
     def change_state(self, new_state):
         (self.owner, self.current_rent, self.prop_count, self.prop_vacancy, self.prop_sell) = new_state
         
+    def info(self):
+        col = ('Red', 'Green', 'Blue', 'Yellow')
+        if self.owner == 0:
+            owner = 'Bank'
+        elif self.owner < 10:
+            prop_vac, prop_sel = ('No', 'No')
+            if self.prop_vacancy == True: prop_vac = 'Yes'
+            if self.prop_sell == True: prop_sel = 'Yes'
+            owner = 'Player-%d\nCurrent Rent =%d\nTotal Properties = %d\nCan raise property = %s\nCan sell property = %s\n' % (self.owner, 
+                        self.current_rent, self.prop_count, prop_vac, prop_sel)
+        else:
+            owner = 'Player-%d has mortgaged to bank.' % (self.owner - 10)
+        return "Country Name = %s\n--------------------\nColor Group = %s\nBoard Location = %d\nMortgage Value = %d\nBasic Rent = %d\nRent in color triplet = %d\nCurrent Owner = %s" % (self.name, 
+                col[self.color_grp - 1], self.board_loc, self.mortgage_val, self.rent, (2 * self.rent), owner)
+
+        
 class Utility(Asset):
     def __init__(self, board_loc, name, buy_price, mortgage_value, rent, pair_rent, grp):
         super(Utility, self).__init__(board_loc, name, buy_price, mortgage_value, rent)
@@ -80,3 +96,12 @@ class Utility(Asset):
     def change_state(self, new_state):
         (self.owner, self.current_rent) = new_state
 
+    def info(self):
+        if self.owner == 0:
+            owner = 'Bank'
+        elif self.owner < 10:
+            owner = 'Player-%d\nCurrent Rent =%d\n' % (self.owner, self.current_rent)
+        else:
+            owner = 'Player-%d has mortgaged to bank.' % (self.owner - 10)
+        return "Utility Name = %s\n--------------------\nBoard Location = %d\nMortgage Value = %d\nBasic Rent = %d\nRent with pair = %d\nCurrent Owner = %s" % (self.name, 
+                self.board_loc, self.mortgage_val, self.rent, self.pair_rent, owner)

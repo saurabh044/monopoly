@@ -331,7 +331,7 @@ class Banksmart(object):
                 asset.owner = player_id
                 self.prop_vacancy_set(player_id, asset)
                 self.prop_sell_set(player_id, asset)
-                self.accounts[player_id].withdraw(mort_amount, "Asset %s redeemed from Bank" % (asset.name, player_id))
+                self.accounts[player_id].withdraw(mort_amount, "Asset %s redeemed from Bank" % (asset.name))
                 self.accounts[0].deposit(mort_amount, "Asset %s redeemed by Player-%d" % (asset.name, player_id))
                 self.logObj.printer("Asset redemption done. Remaining balance = $%d" % self.accounts[player_id].balance)
             else:

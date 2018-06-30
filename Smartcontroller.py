@@ -7,6 +7,7 @@ from cmdbtester import DBhandler
 import re
 from Printer import Printer
 import random
+from mysql.connector.constants import flag_is_set
 
 # Game Board Data
 # key value array of country [boardPosition, buyValue, mortgageValue, colorGroup, basicRent, property_price, property_rent]
@@ -39,19 +40,19 @@ utility_list = {"Waterways": (4, 9500, 2000, 1400, 2200, 1),
                 "Petroleum": (32, 5500, 1300, 500, 1000, 3),
                 "Railways": (34, 9500, 5000, 1500, 2500, 2)
                 }
-board_display_data = ("Start", "England R-2500", "Iraq G-5000", 
-                      "Waterways U-9500", "UNO",
-                      "France R-2500", "Iran G-2500", "Satellite U-2000",
-                      "Egypt G-3200", "Resort", "Canada Y-4000", 
-                      "Germany R-3500", "Airways U-10500", "Custom-Duty",
-                      "Swiss R-3500", "Brazil Y-2500", "Chance",
-                      "Italy R-3500", "Party-House", "Japan B-2500",
-                      "USA Y-8500", "Travelling-Duty", "Roadways U-3500",
-                      "Mexico Y-4000", "Hongkong B-2000", "UNO", 
-                      "Australia Y-3300", "Jail", "India B-5500", "Chance", 
-                      "SaudiArab G-5500", "Petroleum U-5500", "China B-4500", 
-                      "Railways U-9500", "Malaysia G-1500", 
-                      "Singapore B-3000")
+board_display_data = ("Start", "England(2) R-2500", "Iraq(3) G-5000", 
+                      "Waterways(4) U-9500", "UNO",
+                      "France(6) R-2500", "Iran(7) G-2500", "Satellite(8) U-2000",
+                      "Egypt(9) G-3200", "Resort", "Canada(11) Y-4000", 
+                      "Germany(12) R-3500", "Airways(13) U-10500", "Custom-Duty",
+                      "Swiss(15) R-3500", "Brazil(16) Y-2500", "Chance",
+                      "Italy(18) R-3500", "Party-House", "Japan(20) B-2500",
+                      "USA(21) Y-8500", "Travelling-Duty", "Roadways(23) U-3500",
+                      "Mexico(24) Y-4000", "Hongkong(25) B-2000", "UNO", 
+                      "Australia(27) Y-3300", "Jail", "India(29) B-5500", "Chance", 
+                      "SaudiArab(31) G-5500", "Petroleum(32) U-5500", "China(33) B-4500", 
+                      "Railways(34) U-9500", "Malaysia(35) G-1500", 
+                      "Singapore(36) B-3000")
 assets_board_locations = { 2: "",  3: "",  4: "",  6: "",
                            7: "",  8: "",  9: "", 11: "",
                           12: "", 13: "", 15: "", 16: "",
@@ -73,7 +74,7 @@ class Smartcontroller(object):
     def __init__(self, player_count, log_path):       
         self.logPath = log_path
         self.PlayerMenu = MenuBox("Player Menu", self.logPath)
-        self.PlayerMenu.addOptions(["Continue", "Redeem", "Build Property", "Sell Property", "Buy Other's Asset", "Mortgage", "Save Game"])
+        self.PlayerMenu.addOptions(["Continue", "Redeem", "Build Property", "Sell Property", "Show Asset Info", "Save Game"])
         self.PlayerBuyMenu = MenuBox("Buy Menu", self.logPath)
         self.PlayerBuyMenu.addOption("Want to buy")
         
@@ -124,7 +125,7 @@ class Smartcontroller(object):
 
     def print_winner(self, name):
         des = ("*" * 30 + "\n") * 2
-        self.logObj.printer(des + "The winner is %s" % name + des)            
+        self.logObj.printer(des + "The winner is %s\n" % name + des)            
 
     def remove_player_from_game(self, player_id):
         if player_id == 0:
@@ -191,7 +192,7 @@ class Smartcontroller(object):
             self.print_all_player_assets_table()
             if self.state:
                 optionPlayerRecv = 0
-                while optionPlayerRecv not in (1, 7) :
+                while optionPlayerRecv not in (1, 6, 7) :
                     optionPlayerRecv = self.PlayerMenu.runMenu()
                     if optionPlayerRecv == 1:
                         self.logObj.printer("Continuing the game...\n")
@@ -201,14 +202,39 @@ class Smartcontroller(object):
                     elif optionPlayerRecv == 3:
                         self.logObj.printer("Player %d wants to build property on his site" % self.turnHolderPlayerID)
                         self.build_property_on_player_site(self.turnHolderPlayerID)
-                    elif optionPlayerRecv == 7:
-                        if len(self.available_players_id) > 1:
+                    elif optionPlayerRecv == 4:
+                        self.logObj.printer("Player %d wants to sell property of his site" % self.turnHolderPlayerID)
+                        self.sell_property_of_player_site(self.turnHolderPlayerID)
+                    elif optionPlayerRecv == 5:
+                        select = 0
+                        while select == False:
+                            inp = raw_input("Enter the asset code: ")
+                            self.logObj.printer("")
+                            matchObj = re.match(r'^(\d+)$', inp, re.M)
+                            if matchObj:
+                                if 1 <= int(matchObj.group(1)) <= 36:
+                                    select = int(inp)
+                                else:
+                                    self.logObj.printer("Please enter valid asset code between 2 and 36.")
+                            else:
+                                self.logObj.printer("Please enter valid asset code between 2 and 36.")
+                        asset = self.Banker.get_asset_by_assetid(select)
+                        if asset is not None:
+                            self.logObj.printer(asset.info())
+                        else:
+                            self.logObj.printer('Input asset code is not valid. Please check the board.')
+                    elif optionPlayerRecv == 6:
+                        if len(self.available_players_id) > 1: 
                             self.save_game(chance)
                         else:
                             self.logObj.printer("Game already finished. It can not be saved.")
                         self.state = False
                     else:
-                        pass
+                        self.logObj.printer('Player-%d (%s) is leaving the game.' % (self.turnHolderPlayerID, turnplayer.name))
+                        self.logObj.printer('Only %d players left in the game' % (len(self.available_players_id)-1))
+                        self.remove_player_from_game(self.turnHolderPlayerID)
+                        self.display_board()
+                        
 
     def print_all_player_assets_table(self):
         total_cash_reserver = 0
@@ -248,14 +274,14 @@ class Smartcontroller(object):
                     loc = loc + "<P" + str(pp[j].id) + ">"
             self.BoardData[i+1] = [board_display_data[i], owner_tag, loc]
             i += 1
-        self.logObj.printer('-' * 152)
+        self.logObj.printer('-' * 168)
         for i in range(9):
-            self.logObj.printer("{: >16} {: <6} {: <16} {: >16} {: <6} {: <16} {: >16} {: <6} {: <16} {: >16} {: <6} {: <16}".format(
+            self.logObj.printer("{: >20} {: <6} {: <16} {: >20} {: <6} {: <16} {: >20} {: <6} {: <16} {: >20} {: <6} {: <16}".format(
                                 self.BoardData[i + 1][0], self.BoardData[i + 1][1], self.BoardData[i + 1][2], 
                                 self.BoardData[i + 10][0], self.BoardData[i + 10][1],self.BoardData[i + 10][2],
                                 self.BoardData[i + 19][0], self.BoardData[i + 19][1],self.BoardData[i + 19][2],
                                 self.BoardData[i + 28][0], self.BoardData[i + 28][1],self.BoardData[i + 28][2],))
-        self.logObj.printer('-' * 152)
+        self.logObj.printer('-' * 168)
 
     def get_property_owner_where_player_standing(self, playerobj):
         if playerobj.board_pos in assets_board_locations:
@@ -429,6 +455,25 @@ class Smartcontroller(object):
                 self.logObj.printer("Not interested in buying")
         else:
             self.logObj.printer("You do not have any eligible site to build property upon!")
+
+    def sell_property_of_player_site(self, player_id):
+        player_props = []
+        for i in self.Banker.asset_list:
+            if i.issite():
+                if i.owner == player_id and i.prop_sell:
+                    player_props.append(i)
+        if len(player_props) > 0:  
+            prop_sell_menu = MenuBox('Building Purchase Menu', self.logPath)
+            for i in player_props:
+                prop_sell_menu.addOption(i.name)
+            optionGot = prop_sell_menu.runMenu()
+            if optionGot != prop_sell_menu.getoptioncount():
+                asset_id = player_props[optionGot-1].board_loc
+                self.Banker.get_building_from_player(player_id, asset_id)
+            else:
+                self.logObj.printer("Not interested in selling")
+        else:
+            self.logObj.printer("You do not have any eligible site to sell property from!")
             
     def get_winner(self):
         winner = self.available_players_id[0]
