@@ -21,7 +21,6 @@ try:
     dx = DBhandler(dbuser, dbpassword)
 except:
     p.printer("Connection failed to MySQL server. You will not be able to save the ongoing game for later.")
-
 # initial Game Start Menu
 gameretrieve = MenuBox("MONOPOLY GAME", logPath)
 if dx is not None:
@@ -70,7 +69,4 @@ if optionRecv != 4:
     except KeyboardInterrupt:
         p.printer("\nYou ended the game abruptly and couldn't be saved.")
 else:
-    p.printer("Exiting the game.")  
-   
-
-    
+    p.printer("Exiting the game.")    
