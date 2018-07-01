@@ -322,7 +322,7 @@ class Smartcontroller(object):
             self.receive_from_all_to_one(recipient, 200, "UNO-8: Party house - Player-%d" % recipient)
             for i in self.players:
                 if i.id == recipient:
-                    i.jump(19)
+                    i.board_pos = 19
         elif rule_num == 10:
             self.logObj.printer("UNO-10: Receive interest on shares of $1500.")
             res = self.Banker.payreward(recipient, 1500, "UNO-10: shares interest - Player-%d" % recipient)
@@ -337,7 +337,7 @@ class Smartcontroller(object):
             self.bank_response_action(res)
             for i in self.players:
                 if i.id == recipient:
-                    i.jump(28)
+                    i.board_pos = 28
         elif rule_num == 5:
             self.logObj.printer("UNO-5: School and medical fees expenses of $2500.")
             res = self.Banker.p2ptransaction(recipient, 0, 2500, "UNO-5: School Fees - Player-%d" % recipient)
@@ -380,7 +380,7 @@ class Smartcontroller(object):
             self.bank_response_action(res)             
             for i in self.players:
                 if i.id == recipient:
-                    i.jump(28)
+                    i.board_pos = 28
         elif rule_num == 12:
             self.logObj.printer("Chance-12: Repair of your car of $200.")
             res = self.Banker.p2ptransaction(recipient, 0, 200, "Chance-12: Car repair - Player-%d" % recipient)

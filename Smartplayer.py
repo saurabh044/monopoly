@@ -7,7 +7,6 @@ class Smartplayer(object):
         self.active = active
         self.logObj = Printer(logPath)
         self.board_pos = 1
-        self.transaction_statement = Printer()
           
     def move(self, value):
         self.board_pos += value
@@ -16,9 +15,6 @@ class Smartplayer(object):
             return True
         return False
     
-    def jump(self, value):
-        self.board_pos = value
-            
     def deactivate(self):
         self.active = False
         self.board_pos = 0
