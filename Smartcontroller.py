@@ -1,6 +1,5 @@
 from MenuBox import MenuBox, Printer, Dice, DBhandler
 from Banksmart import Banksmart
-from Smartplayer import Smartplayer
 from Asset import Country, Utility
 import re
 
@@ -55,6 +54,31 @@ assets_board_locations = { 2: "",  3: "",  4: "",  6: "",
                           24: "", 25: "", 27: "", 29: "",
                           31: "", 32: "", 33: "", 34: "",
                           35: "", 36: ""}
+
+class Smartplayer(object):
+    
+    def __init__(self, id, name, logPath, active=True):
+        self.id = id
+        self.name = name
+        self.active = active
+        self.board_pos = 1
+          
+    def move(self, value):
+        self.board_pos += value
+        if self.board_pos > 36:
+            self.board_pos -= 36
+            return True
+        return False
+    
+    def deactivate(self):
+        self.active = False
+        self.board_pos = 0
+        
+    def state(self):
+        return (self.id, self.name, self.active, self.board_pos) 
+    
+    def change_state(self, new_state):
+        (self.active, self.board_pos) = new_state
             
 class Smartcontroller(object):
 
