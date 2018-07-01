@@ -1,8 +1,7 @@
-from MenuBox import MenuBox, Printer, Dice
+from MenuBox import MenuBox, Printer, Dice, DBhandler
 from Banksmart import Banksmart
 from Smartplayer import Smartplayer
 from Asset import Country, Utility
-from cmdbtester import DBhandler
 import re
 
 # Game Board Data

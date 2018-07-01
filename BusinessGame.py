@@ -1,7 +1,6 @@
 from Smartcontroller import Smartcontroller
-from MenuBox import MenuBox, Printer
+from MenuBox import MenuBox, Printer, DBhandler
 import os
-from cmdbtester import DBhandler
 
 if not os.path.exists("business_game_logs"):
     os.makedirs("business_game_logs")
