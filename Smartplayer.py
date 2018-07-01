@@ -22,7 +22,6 @@ class Smartplayer(object):
     def deactivate(self):
         self.active = False
         self.board_pos = 0
-        self.transaction_statement.file_only_printer("\nYour account has been deactivated.\n")
         
     def state(self):
         return (self.id, self.name, self.active, self.board_pos) 

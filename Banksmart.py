@@ -68,6 +68,7 @@ class Banksmart(object):
     def bankrupt_a_player(self, player_id):
         self.accounts[0].deposit(self.accounts[player_id].balance, "Surrendered money from Player-%d" % player_id)
         self.accounts[player_id].withdraw(self.accounts[player_id].balance, "Bankrupt")
+        self.accounts[player_id].transaction_statement.file_only_printer("\nYour account has been deactivated.\n")
         prop_list = []
         for i in self.asset_list:
             if i.owner == player_id or i.owner == player_id + 10:
