@@ -69,10 +69,6 @@ class Smartplayer(object):
             self.board_pos -= 36
             return True
         return False
-    
-    def deactivate(self):
-        self.active = False
-        self.board_pos = 0
         
     def state(self):
         return (self.id, self.name, self.active, self.board_pos) 
@@ -146,7 +142,8 @@ class Smartcontroller(object):
             res = self.Banker.bankrupt_a_player(player_id)
             for i in res:
                 assets_board_locations[i] = ""
-            self.players[player_id-1].deactivate()
+            self.players[player_id-1].active = False
+            self.players[player_id-1].board_pos = 0
             if len(self.available_players_id) >= 2:
                 if self.turnHolderPlayerID == player_id:
                     self.set_turn(-1)

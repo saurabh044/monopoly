@@ -2,23 +2,21 @@ from Smartcontroller import Smartcontroller
 from MenuBox import MenuBox, Printer, DBhandler
 import os
 
-if not os.path.exists("business_game_logs"):
-    os.makedirs("business_game_logs")
+if not os.path.exists("business_game_logs"): os.makedirs("business_game_logs")
 logPath = "./business_game_logs/business.logs"
 p = Printer(logPath)
 dbuser = raw_input("Enter the username for MySQL DB (default root): ")
-if dbuser == "":
-    dbuser = 'root'
+if dbuser == "": dbuser = 'root'
 dbpassword = raw_input("Enter the password for MySQL DB (default root): ")
-if dbpassword == "":
-    dbpassword = 'root'
+if dbpassword == "": dbpassword = 'root'
 dx = None
 try:
     dx = DBhandler(dbuser, dbpassword)
 except:
     p.printer("Connection failed to MySQL server. You will not be able to save the ongoing game for later.")
-# initial Game Start Menu
 gameretrieve = MenuBox("MONOPOLY GAME", logPath)
+gameStartMenu = MenuBox("Start Game:", logPath)
+gameStartMenu.addOptions(["4 Player ", "3 Player ", "2 Player "])
 if dx is not None:
     gameretrieve.addOptions(["Retrieve saved game", "New Game"])
     optionRecv = 4
@@ -38,8 +36,6 @@ if dx is not None:
             p.printer("Unable to retrieve any saved game.") 
     elif option == 2:
         with open(logPath, 'w') as fH: pass
-        gameStartMenu = MenuBox("Start Game:", logPath)
-        gameStartMenu.addOptions(["4 Player ", "3 Player ", "2 Player "])
         optionRecv = gameStartMenu.runMenu()
         if optionRecv != 4:
             chanceCount = 0    
@@ -49,8 +45,6 @@ if dx is not None:
         p.printer("Exiting.") 
 else:
     with open(logPath, 'w') as fH: pass
-    gameStartMenu = MenuBox("Start Game:", logPath)
-    gameStartMenu.addOptions(["4 Player ", "3 Player ", "2 Player "])
     optionRecv = gameStartMenu.runMenu()
     if optionRecv != 4:
         chanceCount = 0    

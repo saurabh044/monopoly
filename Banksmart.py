@@ -21,9 +21,6 @@ class Account(object):
         if self.balance >= amount:
             return True
         return False  
-    
-    def deactivate(self):
-        self.state = False   
      
     def set_statement_filename(self, fname, mode):
         self.transaction_statement.set_log_file_name(fname, mode)
@@ -78,7 +75,7 @@ class Banksmart(object):
                 i.current_rent = i.rent
                 i.prop_vacancy = False
                 i.prop_sell = False
-        self.accounts[player_id].deactivate()
+        self.accounts[player_id].state = False
         return prop_list
       
     def raise_cash(self, player_id, min_amount):
