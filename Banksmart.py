@@ -16,6 +16,7 @@ class Account(object):
     def withdraw(self, amount, msg=""):
         self.balance -= amount
         self.statement_populate(msg, amount, 0)
+        if self.balance < 0: raise ValueError
     
     def isenoughbalance(self, amount):
         if self.balance >= amount:
@@ -143,22 +144,11 @@ class Banksmart(object):
             if i.board_loc == id:
                 return i.owner
         return -1    
-    
-    def set_owner_to_asset(self, assetid, playerid ):
-        for i in self.asset_list:
-            if i.board_loc == assetid:
-                i.owner = playerid
                 
     def get_asset_by_assetid(self, asset_id):
         for i in self.asset_list:
             if i.board_loc == asset_id:
                 return i
-    
-    def get_buyprice_by_assetid(self, id):
-        for i in self.asset_list:
-            if i.board_loc == id:
-                return i.buy_price
-        return -1     
     
     def get_players_countries(self, playerid):
         count = 0
