@@ -5,7 +5,6 @@ class Smartplayer(object):
         self.id = id
         self.name = name
         self.active = active
-        self.logObj = Printer(logPath)
         self.board_pos = 1
           
     def move(self, value):
