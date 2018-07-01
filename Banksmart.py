@@ -213,7 +213,7 @@ class Banksmart(object):
                 if i.issite():
                     prop_name_list[i.color_grp-1].append(i.get_name_with_prop_flag() + '(m)')
                 else:
-                    prop_name_list[4].append(i.name)
+                    prop_name_list[4].append(i.name + '(m)')
             else: pass
         return (", ".join(['%s:%d' % (color_code[i], len(prop_name_list[i])) for i in range(5)]) + " ## " 
                 + ' '.join(['%s:%s' % (color_code[i], ",".join(prop_name_list[i])) for i in range(5) if len(prop_name_list[i]) > 0])) 
