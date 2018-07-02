@@ -45,7 +45,7 @@ class MenuBox(object):
 
     def dispMenu(self):
         counter = 1
-        self.logObj.printer(self.__Name + "-" * len(self.__Name))
+        self.logObj.printer("\n" + self.__Name + "\n" + "-" * len(self.__Name))
         for i in self.optionList:
             self.logObj.printer(str(counter) + ": " + i)
             counter += 1
