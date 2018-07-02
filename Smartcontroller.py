@@ -4,7 +4,6 @@ from Asset import Country, Utility
 import re
 import os
 import platform
-from distutils.command.clean import clean
 # Game Board Data
 # key value array of country [boardPosition, buyValue, mortgageValue, colorGroup, basicRent, property_price, property_rent]
 country_list = {"England":   ( 2, 7000, 3500, 1, 700, 7000, 1700),
@@ -108,21 +107,10 @@ class Smartcontroller(object):
         # key value array of Utility [boardPosition, buyValue, mortgageValue]
         self.utility_name_list = ["Waterways", "Satellite", "Airways", "Roadways", "Petroleum", "Railways"]
         self.Banker = Banksmart(0, self.logPath)
-        for i in country_list:
-            self.Banker.asset_list.append(Country(country_list[i][0], i,
-                                             country_list[i][1],
-                                             country_list[i][2],
-                                             country_list[i][4],
-                                             country_list[i][5],
-                                             country_list[i][6],
-                                             country_list[i][3]))
-        for i in utility_list:
-            self.Banker.asset_list.append(Utility(utility_list[i][0], i, 
-                                             utility_list[i][1], 
-                                             utility_list[i][2], 
-                                             utility_list[i][3], 
-                                             utility_list[i][4],
-                                             utility_list[i][5]))
+        self.Banker.asset_list = [Country(country_list[i][0], i, country_list[i][1], country_list[i][2], country_list[i][4],
+                                          country_list[i][5], country_list[i][6], country_list[i][3]) for i in country_list] + \
+                                 [Utility(utility_list[i][0], i, utility_list[i][1], utility_list[i][2],  utility_list[i][3], 
+                                             utility_list[i][4], utility_list[i][5]) for i in utility_list]
                         
     def set_turn(self, value):
         if self.turnHolderPlayerID == 0:
@@ -132,8 +120,7 @@ class Smartcontroller(object):
             self.turnHolderPlayerID = self.available_players_id[next_players_index]
 
     def print_winner(self, name):
-        des = ("*" * 30 + "\n") * 2
-        self.logObj.printer(des + "The winner is %s\n" % name + des)            
+        self.logObj.printer(("*" * 30 + "\n") * 2+ "The winner is %s\n" % name + ("*" * 30 + "\n") * 2)            
 
     def remove_player_from_game(self, player_id):
         if player_id == 0:
@@ -250,37 +237,28 @@ class Smartcontroller(object):
 
     def print_all_player_assets_table(self, term_only):
         output = ""
-        total_cash_reserver = 0
-        total_asset_reserver = 0
+        total_cash_reserver = self.Banker.get_players_balance(0) + reduce(lambda x, y: x + y, [self.Banker.get_players_balance(i.id) for i in self.players if i.active])
+        total_asset_reserver = self.Banker.get_players_asset_value(0) + reduce(lambda x, y: x + y, [self.Banker.get_players_asset_value(i.id) for i in self.players if i.active])
         output += "{: <5} {: <10} {: >8} {: >10} {: <10}\n".format("PID", "Name", "Cash", "NetWorth", "Assets")
         for i in self.players:
             if i.active:
-                total_cash_reserver += self.Banker.get_players_balance(i.id)
-                total_asset_reserver += self.Banker.get_players_asset_value(i.id)
                 output += "{: <5} {: <10} {: >8} {: >10} {: <10}\n".format(i.id, i.name, 
                                     self.Banker.get_players_balance(i.id), self.Banker.get_players_asset_value(i.id),
                                     self.Banker.group_wise_asset_list(i.id))
         output += "{: <5} {: <10} {: >8} {: >10} {: <10}\n".format("BID", "Name", "Cash", "NetWorth", "Assets")
         output += "{: <5} {: <10} {: >8} {: >10} {: <10}\n".format(0, 'Bank',
                             self.Banker.get_players_balance(0), self.Banker.get_players_asset_value(0), self.Banker.group_wise_asset_list(0))
-        total_cash_reserver += self.Banker.get_players_balance(0)
-        total_asset_reserver += self.Banker.get_players_asset_value(0)
         if total_cash_reserver != 1000000:
             output += "Cash-Balance issue occurred.\n"
             raise ValueError
         if total_asset_reserver != 118000:
             output += "Asset-Balance issue occurred.\n"
             raise ValueError
-        if term_only is False:
-            self.logObj.printer(output)
-        else:
-            print output
+        if term_only is False: self.logObj.printer(output)
+        else: print output
                         
     def display_board(self, term_only):
-        output = ""
-        output += ' ' * 70 + '-' * 28 + '\n'
-        output += ' ' * 73 +  'INTERNATIONAL BUSINESS' + '\n'
-        output += ' ' * 70 + '-' * 28 + '\n'      
+        output = ' ' * 70 + '-' * 28 + '\n' + ' ' * 73 +  'INTERNATIONAL BUSINESS' + '\n' + ' ' * 70 + '-' * 28 + '\n'      
         i = 0
         while i < len(board_display_data):
             pp = self.check_all_player_presence_on_a_position(i+1)
@@ -308,10 +286,7 @@ class Smartcontroller(object):
             print output
             
     def get_property_owner_where_player_standing(self, playerobj):
-        if playerobj.board_pos in assets_board_locations:
-            return self.Banker.get_owner_by_assetid(playerobj.board_pos)
-        else:
-            return -1
+        return self.Banker.get_owner_by_assetid(playerobj.board_pos)
 
     def show_board(self, msg="", term_only=False):
         if platform.system() == 'Linux':
@@ -456,14 +431,10 @@ class Smartcontroller(object):
             pass
 
     def redeem_mortgaged_property_of_player(self, player_id):
-        player_mort_props = []
-        for i in self.Banker.asset_list:
-            if i.owner == player_id + 10:
-                player_mort_props.append(i)
+        player_mort_props = [i for i in self.Banker.asset_list if i.owner == player_id + 10]
         if len(player_mort_props) > 0:
             prop_redeem_menu = MenuBox('Asset Redemption Menu', self.logPath)  
-            for i in player_mort_props:
-                prop_redeem_menu.addOption(i.name)  
+            prop_redeem_menu.addOptions([i.name for i in player_mort_props])  
             optionGot = prop_redeem_menu.runMenu()
             if optionGot != prop_redeem_menu.getoptioncount():
                 asset_id = player_mort_props[optionGot-1].board_loc
@@ -474,15 +445,10 @@ class Smartcontroller(object):
             self.logObj.printer("You do not have any mortgaged assets.")
 
     def build_property_on_player_site(self, player_id):
-        player_props = []
-        for i in self.Banker.asset_list:
-            if i.issite():
-                if i.owner == player_id and i.prop_vacancy:
-                    player_props.append(i)
+        player_props = [i for i in self.Banker.asset_list if i.issite() if i.owner == player_id and i.prop_vacancy]
         if len(player_props) > 0:  
             prop_buy_menu = MenuBox('Building Purchase Menu', self.logPath)
-            for i in player_props:
-                prop_buy_menu.addOption(i.name)
+            prop_buy_menu.addOptions([i.name for i in player_props])
             optionGot = prop_buy_menu.runMenu()
             if optionGot != prop_buy_menu.getoptioncount():
                 asset_id = player_props[optionGot-1].board_loc
@@ -493,15 +459,10 @@ class Smartcontroller(object):
             self.logObj.printer("You do not have any eligible site to build property upon!")
 
     def sell_property_of_player_site(self, player_id):
-        player_props = []
-        for i in self.Banker.asset_list:
-            if i.issite():
-                if i.owner == player_id and i.prop_sell:
-                    player_props.append(i)
+        player_props = [i for i in self.Banker.asset_list if i.issite() if i.owner == player_id and i.prop_sell]
         if len(player_props) > 0:  
-            prop_sell_menu = MenuBox('Building Purchase Menu', self.logPath)
-            for i in player_props:
-                prop_sell_menu.addOption(i.name)
+            prop_sell_menu = MenuBox('Building Sell Menu', self.logPath)
+            prop_sell_menu.addOptions([i.name for i in player_props])
             optionGot = prop_sell_menu.runMenu()
             if optionGot != prop_sell_menu.getoptioncount():
                 asset_id = player_props[optionGot-1].board_loc
@@ -601,4 +562,3 @@ class Smartcontroller(object):
             dx.dropDB('monopoly_game_db')
         except:
             self.logObj.printer('Error while reading the previous game from DB.')    
-        
