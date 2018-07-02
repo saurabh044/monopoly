@@ -113,11 +113,7 @@ class Banksmart(object):
             return False
         
     def get_players_asset_value(self, player_id):
-        val = 0
-        for i in self.asset_list:
-            if i.owner == player_id or i.owner == player_id + 10:
-                val += i.buy_price
-        return val
+        return reduce(lambda x, y: x + y, [i.buy_price for i in self.asset_list if i.owner == player_id or i.owner == player_id + 10])
     
     def get_players_valuation(self, player_id):
         val = 0
@@ -146,24 +142,13 @@ class Banksmart(object):
         return -1    
                 
     def get_asset_by_assetid(self, asset_id):
-        for i in self.asset_list:
-            if i.board_loc == asset_id:
-                return i
+        return filter(lambda x: x.board_loc == asset_id)[0]
     
     def get_players_countries(self, playerid):
-        count = 0
-        for i in self.asset_list:
-            if i.issite():
-                if i.owner == playerid or i.owner == playerid + 10:
-                    count += 1
-        return count       
+        return len([i for i in self.asset_list if i.issite() if i.owner == player_id or i.owner == player_id + 10])
     
     def get_players_mort_assets(self, playerid):
-        count = 0
-        for i in self.asset_list:
-            if i.owner == playerid + 10:
-                count += 1
-        return count           
+        return len([i for i in self.asset_list if i.owner == player_id + 10])        
         
     def get_current_rent_by_assetid(self, id):
         asset = None
@@ -361,11 +346,7 @@ class Banksmart(object):
                 
     def prop_sell_set(self, player_id, asset):
         if asset.issite():
-            prop_cnt_list = []
-            for i in self.asset_list:
-                if i.issite():
-                    if i.owner == player_id and i.color_grp == asset.color_grp:
-                        prop_cnt_list.append(i.prop_count)
+            prop_cnt_list = [i.prop_count for i in self.asset_list if i.issite() if i.owner == player_id and i.color_grp == asset.color_grp]
             fl_list = [True if i == max(prop_cnt_list) and max(prop_cnt_list) != 0 else False for i in prop_cnt_list]
             c = 0
             for i in self.asset_list:
