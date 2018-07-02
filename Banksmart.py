@@ -110,8 +110,8 @@ class Banksmart(object):
             return False
         
     def get_players_asset_value(self, player_id):
-        return reduce(lambda x, y: x + y, [i.buy_price for i in self.asset_list if i.owner == player_id or i.owner == player_id + 10])
-    
+        return reduce(lambda x, y: x + y, [i.buy_price if i.owner == player_id or i.owner == player_id + 10 else 0 for i in self.asset_list])
+
     def get_players_valuation(self, player_id):
         val = 0
         for i in self.asset_list:
@@ -134,12 +134,12 @@ class Banksmart(object):
         return -1    
                 
     def get_asset_by_assetid(self, asset_id):
-        return filter(lambda x: x.board_loc == asset_id)[0]
+        return filter(lambda x: x.board_loc == asset_id, self.asset_list)[0]
     
-    def get_players_countries(self, playerid):
+    def get_players_countries(self, player_id):
         return len([i for i in self.asset_list if i.issite() if i.owner == player_id or i.owner == player_id + 10])
     
-    def get_players_mort_assets(self, playerid):
+    def get_players_mort_assets(self, player_id):
         return len([i for i in self.asset_list if i.owner == player_id + 10])        
         
     def get_current_rent_by_assetid(self, id):
