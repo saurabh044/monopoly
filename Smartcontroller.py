@@ -300,9 +300,9 @@ class Smartcontroller(object):
 
     def show_board(self):
         if platform.system() == 'Linux':
-            _ = system('clear')
+            _ = os.system('clear')
         else:
-            _ = system('cls')            
+            _ = os.system('cls')            
         self.display_board()
         self.print_all_player_assets_table()
 
