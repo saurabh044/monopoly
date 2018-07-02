@@ -85,7 +85,7 @@ class Smartcontroller(object):
         self.logPath = log_path
         self.dbuser = user
         self.dbpassword = password
-        self.PlayerMenu = MenuBox("Player Menu", self.logPath, 0)
+        self.PlayerMenu = MenuBox("Game Menu", self.logPath, 0)
         self.PlayerMenu.addOptions(["Continue", "Redeem", "Build Property", "Sell Property", "Show Asset Info", "Quit Game"])
         if self.dbuser is not None:
             self.PlayerMenu.addOption('Save Game')
@@ -165,6 +165,7 @@ class Smartcontroller(object):
             dice_out = self.dice.throw_dice()
             self.logObj.printer("Dice outcome = %d" % dice_out)
             iscrossover = turnplayer.move(dice_out)
+            self.show_board(True)
             if iscrossover:
                 self.logObj.printer("You received crossover payment of $%d" % Smartcontroller.crossover_amount)
                 res = self.Banker.payreward(turnplayer.id, Smartcontroller.crossover_amount, 'Crossover payment to Player-%d' % turnplayer.id)
@@ -176,9 +177,11 @@ class Smartcontroller(object):
                 elif turnplayer.board_pos == 17 or turnplayer.board_pos == 30:  # CHANCE
                     self.apply_chance_to_player(turnplayer.id, dice_out)
                 elif turnplayer.board_pos == 14:  # custom duty
+                    self.logObj.printer('You reached on Custom Duty')
                     res = self.Banker.p2ptransaction(turnplayer.id, 0, -1, "Custom Duty - Player-%d" % turnplayer.id)
                     self.bank_response_action(res)
                 elif turnplayer.board_pos == 22:  # travelling duty
+                    self.logObj.printer('You reached on Travelling Duty')
                     res = self.Banker.p2ptransaction(turnplayer.id, 0, -1, "Travelling Duty - Player-%d" % turnplayer.id)
                     self.bank_response_action(res)
                 elif turnplayer.board_pos == 28:  # JAIL
@@ -197,15 +200,14 @@ class Smartcontroller(object):
                     self.remove_player_from_game(turnplayer.id)
                 else:
                     pass
-            self.show_board()
-            self.logObj.printer("Chance #%d" % chance)
-            
             if self.state:
                 optionPlayerRecv = 0
                 while optionPlayerRecv not in (1, 6, 7) :
+                    self.logObj.printer("Player-%d (%s)...\n" % (self.turnHolderPlayerID, turnplayer.name))
                     optionPlayerRecv = self.PlayerMenu.runMenu()
                     if optionPlayerRecv == 1:
                         self.logObj.printer("Continuing the game...\n")
+                        self.show_board()
                     elif optionPlayerRecv == 2:
                         self.logObj.printer("Player %d wants to redeem his mortgaged assets" % self.turnHolderPlayerID)
                         self.redeem_mortgaged_property_of_player(self.turnHolderPlayerID)
@@ -277,9 +279,9 @@ class Smartcontroller(object):
                         
     def display_board(self, term_only):
         output = ""
-        output += '                 ----------------------------\n'
-        output += '                    INTERNATIONAL BUSINESS   \n'
-        output += '                 ----------------------------\n'      
+        output += ' ' * 70 + '-' * 28 + '\n'
+        output += ' ' * 73 +  'INTERNATIONAL BUSINESS' + '\n'
+        output += ' ' * 70 + '-' * 28 + '\n'      
         i = 0
         while i < len(board_display_data):
             pp = self.check_all_player_presence_on_a_position(i+1)
@@ -295,7 +297,7 @@ class Smartcontroller(object):
             i += 1
         output += '-' * 168 + '\n'
         for i in range(9):
-            output += "{: >20} {: <6} {: <16} {: >20} {: <6} {: <16} {: >20} {: <6} {: <16} {: >20} {: <6} {: <16} + '\n'".format(
+            output += "{: >20} {: <6} {: <16} {: >20} {: <6} {: <16} {: >20} {: <6} {: <16} {: >20} {: <6} {: <16}\n".format(
                                 self.BoardData[i + 1][0], self.BoardData[i + 1][1], self.BoardData[i + 1][2], 
                                 self.BoardData[i + 10][0], self.BoardData[i + 10][1],self.BoardData[i + 10][2],
                                 self.BoardData[i + 19][0], self.BoardData[i + 19][1],self.BoardData[i + 19][2],
@@ -335,12 +337,15 @@ class Smartcontroller(object):
                 self.bank_response_action(res)
 
     def enjoyment_in_resort(self, player_id):
+        self.logObj.printer('You reached on Resort. Paid $200 to all.')
         self.transmit_from_one_to_rest(player_id, 200, "Resort money - Player-%d" % player_id)
 
     def get_party_from_others(self, player_id):
+        self.logObj.printer('You reached on Party House. Eligible to receive $200 from all.')
         self.receive_from_all_to_one(player_id, 200, "Party House - Player-%d" % player_id)
 
     def gotojail(self,player_id):
+        self.logObj.printer('You reached on Jail. Paid $ 100 to come out.')
         res = self.Banker.p2ptransaction(player_id, 0, 100, "Reached to Jail - Player-%d" % player_id)
         self.bank_response_action(res)
         
@@ -569,26 +574,31 @@ class Smartcontroller(object):
             assets_board_locations[board_pos] = "|P%d|" % plid
 
     def setprevgame(self):
-        dx = DBhandler(self.dbuser, self.dbpassword) 
-        x = dx.queryDB('monopoly_game_db', 'SELECT * from countries')
-        for i in x:
-            self.Banker.get_asset_by_assetid(i[0]).change_state((i[1], i[2], i[3], bool(i[4]), bool(i[5])))
-            self.set_owner_in_asset(i[0], i[1])
-            
-        x = dx.queryDB('monopoly_game_db', 'SELECT * from utilities')
-        for i in x:
-            self.Banker.get_asset_by_assetid(i[0]).change_state((i[1], i[2]))
-            self.set_owner_in_asset(i[0], i[1])
-            
-        x = dx.queryDB('monopoly_game_db', 'SELECT * from player')
-        for i in x:
-            self.players.append(Smartplayer(i[0], i[1], self.logPath)) 
-            if i[4] == 1:
-                self.available_players_id.append(i[0])
-            if i[5] > 0:
-                self.turnHolderPlayerID = i[0]
-            self.players[i[0]-1].change_state((bool(i[2]), i[3]))                        
-        self.Banker.add_players_accounts(self.player_count, 'a')
-        x = dx.queryDB('monopoly_game_db', 'SELECT * from accounts')
-        for i in x:
-            self.Banker.accounts[i[0]].change_state((i[1], bool(i[2])))
+        try:
+            dx = DBhandler(self.dbuser, self.dbpassword) 
+            x = dx.queryDB('monopoly_game_db', 'SELECT * from countries')
+            for i in x:
+                self.Banker.get_asset_by_assetid(i[0]).change_state((i[1], i[2], i[3], bool(i[4]), bool(i[5])))
+                self.set_owner_in_asset(i[0], i[1])
+                
+            x = dx.queryDB('monopoly_game_db', 'SELECT * from utilities')
+            for i in x:
+                self.Banker.get_asset_by_assetid(i[0]).change_state((i[1], i[2]))
+                self.set_owner_in_asset(i[0], i[1])
+                
+            x = dx.queryDB('monopoly_game_db', 'SELECT * from player')
+            for i in x:
+                self.players.append(Smartplayer(i[0], i[1], self.logPath)) 
+                if i[4] == 1:
+                    self.available_players_id.append(i[0])
+                if i[5] > 0:
+                    self.turnHolderPlayerID = i[0]
+                self.players[i[0]-1].change_state((bool(i[2]), i[3]))                        
+            self.Banker.add_players_accounts(self.player_count, 'a')
+            x = dx.queryDB('monopoly_game_db', 'SELECT * from accounts')
+            for i in x:
+                self.Banker.accounts[i[0]].change_state((i[1], bool(i[2])))
+            dx.dropDB('monopoly_game_db')
+        except:
+            self.logObj.printer('Error while reading the previous game from DB.')    
+        
