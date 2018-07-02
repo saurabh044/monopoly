@@ -198,6 +198,8 @@ class Smartcontroller(object):
                 else:
                     pass
             self.show_board()
+            self.logObj.printer("Chance #%d" % chance)
+            
             if self.state:
                 optionPlayerRecv = 0
                 while optionPlayerRecv not in (1, 6, 7) :
@@ -245,31 +247,39 @@ class Smartcontroller(object):
                     else:
                         pass
 
-    def print_all_player_assets_table(self):
+    def print_all_player_assets_table(self, term_only):
+        output = ""
         total_cash_reserver = 0
         total_asset_reserver = 0
-        self.logObj.printer("{: <5} {: <10} {: >8} {: >10} {: <10}".format("PID", "Name", "Cash", "NetWorth", "Assets"))
+        output += "{: <5} {: <10} {: >8} {: >10} {: <10}\n".format("PID", "Name", "Cash", "NetWorth", "Assets")
         for i in self.players:
             if i.active:
                 total_cash_reserver += self.Banker.get_players_balance(i.id)
                 total_asset_reserver += self.Banker.get_players_asset_value(i.id)
-                self.logObj.printer("{: <5} {: <10} {: >8} {: >10} {: <10}".format(i.id, i.name, 
+                output += "{: <5} {: <10} {: >8} {: >10} {: <10}\n".format(i.id, i.name, 
                                     self.Banker.get_players_balance(i.id), self.Banker.get_players_asset_value(i.id),
-                                    self.Banker.group_wise_asset_list(i.id)))
-        self.logObj.printer("{: <5} {: <10} {: >8} {: >10} {: <10}".format("BID", "Name", "Cash", "NetWorth", "Assets"))
-        self.logObj.printer("{: <5} {: <10} {: >8} {: >10} {: <10}".format(0, 'Bank',
-                            self.Banker.get_players_balance(0), self.Banker.get_players_asset_value(0), self.Banker.group_wise_asset_list(0)))
+                                    self.Banker.group_wise_asset_list(i.id))
+        output += "{: <5} {: <10} {: >8} {: >10} {: <10}\n".format("BID", "Name", "Cash", "NetWorth", "Assets")
+        output += "{: <5} {: <10} {: >8} {: >10} {: <10}\n".format(0, 'Bank',
+                            self.Banker.get_players_balance(0), self.Banker.get_players_asset_value(0), self.Banker.group_wise_asset_list(0))
         total_cash_reserver += self.Banker.get_players_balance(0)
         total_asset_reserver += self.Banker.get_players_asset_value(0)
         if total_cash_reserver != 1000000:
-            self.logObj.printer("Cash-Balance issue occurred.")
+            output += "Cash-Balance issue occurred.\n"
             raise ValueError
         if total_asset_reserver != 118000:
-            self.logObj.printer("Asset-Balance issue occurred.")
+            output += "Asset-Balance issue occurred.\n"
             raise ValueError
-        self.logObj.printer("")
-
-    def display_board(self):
+        if term_only is False:
+            self.logObj.printer(output)
+        else:
+            print output
+                        
+    def display_board(self, term_only):
+        output = ""
+        output += '                 ----------------------------\n'
+        output += '                    INTERNATIONAL BUSINESS   \n'
+        output += '                 ----------------------------\n'      
         i = 0
         while i < len(board_display_data):
             pp = self.check_all_player_presence_on_a_position(i+1)
@@ -283,28 +293,32 @@ class Smartcontroller(object):
                     loc = loc + "<P" + str(pp[j].id) + ">"
             self.BoardData[i+1] = [board_display_data[i], owner_tag, loc]
             i += 1
-        self.logObj.printer('-' * 168)
+        output += '-' * 168 + '\n'
         for i in range(9):
-            self.logObj.printer("{: >20} {: <6} {: <16} {: >20} {: <6} {: <16} {: >20} {: <6} {: <16} {: >20} {: <6} {: <16}".format(
+            output += "{: >20} {: <6} {: <16} {: >20} {: <6} {: <16} {: >20} {: <6} {: <16} {: >20} {: <6} {: <16} + '\n'".format(
                                 self.BoardData[i + 1][0], self.BoardData[i + 1][1], self.BoardData[i + 1][2], 
                                 self.BoardData[i + 10][0], self.BoardData[i + 10][1],self.BoardData[i + 10][2],
                                 self.BoardData[i + 19][0], self.BoardData[i + 19][1],self.BoardData[i + 19][2],
-                                self.BoardData[i + 28][0], self.BoardData[i + 28][1],self.BoardData[i + 28][2],))
-        self.logObj.printer('-' * 168)
-
+                                self.BoardData[i + 28][0], self.BoardData[i + 28][1],self.BoardData[i + 28][2],)
+        output += '-' * 168 + '\n'
+        if term_only is False:
+            self.logObj.printer(output)
+        else:
+            print output
+            
     def get_property_owner_where_player_standing(self, playerobj):
         if playerobj.board_pos in assets_board_locations:
             return self.Banker.get_owner_by_assetid(playerobj.board_pos)
         else:
             return -1
 
-    def show_board(self):
+    def show_board(self, term_only=False):
         if platform.system() == 'Linux':
             _ = os.system('clear')
         else:
-            _ = os.system('cls')            
-        self.display_board()
-        self.print_all_player_assets_table()
+            _ = os.system('cls')    
+        self.display_board(term_only)
+        self.print_all_player_assets_table(term_only)
 
     def transmit_from_one_to_rest(self, sender, amount, reason_text):
         for i in self.available_players_id:
