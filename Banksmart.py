@@ -127,13 +127,8 @@ class Banksmart(object):
         return val + self.accounts[player_id].balance        
     
     def get_players_credit_value(self, player_id):
-        val = self.accounts[player_id].balance
-        for i in self.asset_list:
-            if i.owner == player_id:
-                val += i.mortgage_val
-                if i.issite():
-                    val += i.prop_price * i.prop_count / 2
-        return val
+        return reduce(lambda x, y: x + y, [self.accounts[player_id].balance] + [i.mortgage_val for i in self.asset_list if i.owner == player_id] + 
+                [(i.prop_price * i.prop_count) / 2 for i in self.asset_list if i.owner == player_id if i.issite()])
         
     def get_owner_by_assetid(self, id):
         for i in self.asset_list:
@@ -329,12 +324,11 @@ class Banksmart(object):
             if col_grp_count >= 3:
                 prop_cnt_list = [i.prop_count for i in self.asset_list if i.issite() if i.owner == player_id and i.color_grp == asset.color_grp]
                 fl_list = [True if i == min(prop_cnt_list) and min(prop_cnt_list) != 4 else False for i in prop_cnt_list]
-                c = 0
                 for i in self.asset_list:
                     if i.issite():
                         if i.owner == player_id and i.color_grp == asset.color_grp:
-                            i.prop_vacancy = fl_list[c]
-                            c += 1       
+                            i.prop_vacancy = fl_list[0]
+                            del fl_list[0]     
                 
     def prop_sell_set(self, player_id, asset):
         if asset.issite():
