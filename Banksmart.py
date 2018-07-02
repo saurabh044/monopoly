@@ -146,30 +146,20 @@ class Banksmart(object):
         asset = None
         for i in self.asset_list:
             if i.board_loc == id:
-                if i.owner > 10:
-                    return -1
-                elif i.owner == 0:
+                if i.owner == 0 or i.owner > 10:
                     return -1
                 else:
                     asset = i  
-        if asset == None:
-            return -1              
+            else:
+                return -1              
         if asset.issite():
             if asset.prop_count == 0:
-                color_count = 0
-                for i in self.asset_list:
-                    if i.issite():
-                        if i.owner == asset.owner and i.color_grp == asset.color_grp:
-                            color_count += 1
+                color_count = len([1 for i in self.asset_list if i.issite() if i.owner == asset.owner and i.color_grp == asset.color_grp])
                 if color_count >= 3:
                     return asset.current_rent * 2 
             return asset.current_rent
         else:
-            grp_count = 0
-            for i in self.asset_list:
-                if i.issite() is False:
-                    if i.owner == asset.owner and i.pair_grp == asset.pair_grp:
-                        grp_count += 1 
+            grp_count = len([1 for i in self.asset_list if i.issite() is False if i.owner == asset.owner and i.pair_grp == asset.pair_grp])
             if grp_count == 2:
                 return asset.pair_rent
             return asset.current_rent             
@@ -352,9 +342,7 @@ class Banksmart(object):
             if amount > 500 * factor:
                 amount = 500 * factor   
         if self.accounts[payee_id].isenoughbalance(amount) is False:
-            if self.raise_cash(payee_id, amount):
-                pass
-            else:
+            if self.raise_cash(payee_id, amount) is False:
                 return [payee_id]
         self.accounts[payee_id].withdraw(amount, msg)
         self.accounts[recep_id].deposit(amount, msg)

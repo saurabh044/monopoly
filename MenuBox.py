@@ -45,8 +45,7 @@ class MenuBox(object):
 
     def dispMenu(self):
         counter = 1
-        self.logObj.printer(self.__Name)
-        self.logObj.printer("-" * len(self.__Name))
+        self.logObj.printer(self.__Name + "-" * len(self.__Name))
         for i in self.optionList:
             self.logObj.printer(str(counter) + ": " + i)
             counter += 1
@@ -110,8 +109,6 @@ class DBhandler(object):
     
     def __init__(self, username, password):
         try:
-            # validate the user name/password by connecting MySQL Server
-            # if connection OK, then only create the object
             conn = mysql.connector.connect(user=username,
                                            password=password)
             conn.close()
@@ -121,117 +118,80 @@ class DBhandler(object):
             print(err)
             raise AttributeError
         else:
-            # create the DB handling object if no exception
             self.__username = username
             self.__password = password
-            # set DB name to None at initialization of object
             self.database = None
 
     def isDBexist(self, database):
-        # make a connection with current user name/password and database
         try:
             cnxn = mysql.connector.connect(user=self.__username,
                                            password=self.__password,
                                            database=database)
             cnxn.close()
-            # if connection was successful return 1
             return 1
         except mysql.connector.Error as err:
-            # if any exception above print MySQL error and return -1
-            # DBhandler.printError(err)
             return -1
 
     def createDB(self, database):
-        # if DB already exists return with 0
         if self.isDBexist(database) == 1:
             return 0
         else:
-            # if no such DB exist, get the connection object first
-            # create a cursor object from above connection
             with cursor_cm(self.__username, self.__password) as cur:
-                # Execute the SQL command to create database
                 try:
                     cur.execute("CREATE DATABASE %s" % database)
-                    # return 1 for successful DB creation
                     return 1
                 except mysql.connector.Error as err:
-                    # print the MySQL error if above raises any exception
                     DBhandler.printError(err)
                     return -1
 
     def dropDB(self, database):
-        # if specified DB does not exist return 0
         if self.isDBexist(database) == -1:
             return 0
         else:
-            # if the DB specified exists and also same is configured on the
-            # DBHandler object, remove it and set database name to None
             if self.database == database:
                 self.database = None
-            # get the cursor object
             with cursor_cm(self.__username, self.__password) as cur:
                 try:
-                    # execute the command to drop the database
                     cur.execute("DROP DATABASE %s" % database)
-                    # if no exception return 1
                     return 1
                 except mysql.connector.Error as err:
-                    # if exception above, print MySQL error and return -1
                     DBhandler.printError(err)
                     return -1
 
-    # method for creating a table in specified database
     def createTable(self, database, tablename, columns, datatype):
-        # check for database existence
         if self.isDBexist(database) != 1:
             return -1
-        # create a cursor object
         with cursor_cm(self.__username, self.__password, database) as cur:
             try:
-                # get the column names and their data types from function
-                # arguments and write the create table MySQL command
                 query1 = ", ".join([columns[i] + " " + datatype[i] for i in
                                    range(len(columns))])
-                # execute the create table command
                 cur.execute("CREATE TABLE %s (%s)" % (tablename, query1))
-                # return 1 for successful table creation
                 return 1
             except mysql.connector.Error as err:
-                # print MySQL error if any exception above and return -1
                 DBhandler.printError(err)
                 return -1
 
     def queryDB(self, database, query):
-        # check for database existence
         if self.isDBexist(database) != 1:
             return 
         with cursor_cm(self.__username, self.__password, database) as cur:
             try:
-                # execute the query
                 cur.execute(query)
-                # print the query output
                 return [row for row in cur]
-                # if no exception in above code return 1
             except mysql.connector.Error as err:
-                # if any exception print error and return -1
                 DBhandler.printError(err)
 
-    # method for modifying the specified database with insert/update command
     def insertintoDB(self, database, query):
         if self.isDBexist(database) != 1:
             return -1
         with cursor_cm(self.__username, self.__password, database) as cur:
             try:
-                # execute the query
                 cur.execute(query)
-                # if no exception in above code return 1
                 return 1
             except mysql.connector.Error as err:
-                # if any exception in above code print error and return -1
                 DBhandler.printError(err)
                 return -1
 
-    # static method for printing the MySQL error in more readable format
     @staticmethod
     def printError(error):
         print "ERROR: (%d) %s" % (error.errno, error.msg)
