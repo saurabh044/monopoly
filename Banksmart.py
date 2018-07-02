@@ -325,17 +325,9 @@ class Banksmart(object):
 
     def prop_vacancy_set(self, player_id, asset):
         if asset.issite():
-            col_grp_count = 0 
-            for i in self.asset_list:
-                if i.issite():
-                    if i.owner == player_id and i.color_grp == asset.color_grp:
-                        col_grp_count += 1
+            col_grp_count = len([1 for i in self.asset_list if i.issite() if i.owner == player_id and i.color_grp == asset.color_grp])
             if col_grp_count >= 3:
-                prop_cnt_list = []
-                for i in self.asset_list:
-                    if i.issite():
-                        if i.owner == player_id and i.color_grp == asset.color_grp:
-                            prop_cnt_list.append(i.prop_count)
+                prop_cnt_list = [i.prop_count for i in self.asset_list if i.issite() if i.owner == player_id and i.color_grp == asset.color_grp]
                 fl_list = [True if i == min(prop_cnt_list) and min(prop_cnt_list) != 4 else False for i in prop_cnt_list]
                 c = 0
                 for i in self.asset_list:
@@ -348,12 +340,11 @@ class Banksmart(object):
         if asset.issite():
             prop_cnt_list = [i.prop_count for i in self.asset_list if i.issite() if i.owner == player_id and i.color_grp == asset.color_grp]
             fl_list = [True if i == max(prop_cnt_list) and max(prop_cnt_list) != 0 else False for i in prop_cnt_list]
-            c = 0
             for i in self.asset_list:
                 if i.issite():
                     if i.owner == player_id and i.color_grp == asset.color_grp:
-                        i.prop_sell = fl_list[c]
-                        c += 1       
+                        i.prop_sell = fl_list[0]
+                        del fl_list[0]
                                       
     def payreward(self, player_id, amount, msg): 
         if self.accounts[0].isenoughbalance(amount) is False:
