@@ -82,10 +82,7 @@ class Banksmart(object):
     def raise_cash(self, player_id, min_amount):
         if self.get_players_credit_value(player_id) > min_amount:
             while self.accounts[player_id].balance < min_amount:
-                player_props = []            
-                for i in self.asset_list:
-                    if i.owner == player_id:
-                        player_props.append(i)
+                player_props = [i for i in self.asset_list if i.owner == player_id]            
                 if len(player_props) == 0:
                     return False
                 MortMenu = MenuBox('Cash Raise Menu', self.logPath)
@@ -121,7 +118,7 @@ class Banksmart(object):
             if i.owner == player_id:
                 val += i.buy_price
             elif i.owner == player_id + 10:
-                val += i.buy_price - i.mortgage_val
+                val += i.buy_price - (i.mortgage_val * 1.1)
             else:
                 pass
         return val + self.accounts[player_id].balance        
@@ -304,7 +301,7 @@ class Banksmart(object):
     def redeem_asset_of_player(self, player_id, asset_id):
         asset = self.get_asset_by_assetid(asset_id)
         if asset.owner == player_id + 10:
-            mort_amount = asset.mortgage_val
+            mort_amount = int(asset.mortgage_val * 1.1)
             if self.accounts[player_id].isenoughbalance(mort_amount):
                 asset.owner = player_id
                 self.prop_vacancy_set(player_id, asset)
