@@ -156,7 +156,14 @@ class Banksmart(object):
             if i.issite():
                 if i.owner == playerid or i.owner == playerid + 10:
                     count += 1
-        return count                 
+        return count       
+    
+    def get_players_mort_assets(self, playerid):
+        count = 0
+        for i in self.asset_list:
+            if i.owner == playerid + 10:
+                count += 1
+        return count           
         
     def get_current_rent_by_assetid(self, id):
         asset = None
@@ -211,20 +218,24 @@ class Banksmart(object):
     def sell_asset_to_player(self, player_id, asset_id):
         asset = self.get_asset_by_assetid(asset_id)
         if asset.owner == 0:
-            self.logObj.printer("You reached on %s" % asset.name)
-            if self.accounts[player_id].isenoughbalance(asset.buy_price):
-                player_buyconsent = self.PlayerBuyMenu.runMenu()  # This auto_runMenu statement is for simulation purpose.
-                if player_buyconsent == 1:
-                    self.accounts[player_id].withdraw(asset.buy_price, "Asset %s purchase from Bank" % asset.name)
-                    self.accounts[0].deposit(asset.buy_price, "Asset %s sale to Player-%d" % (asset.name, player_id))
-                    asset.owner = player_id
-                    self.prop_vacancy_set(player_id, asset)
-                    self.logObj.printer("Purchase done")    
-                    return 0 
+            self.logObj.printer("You reached on %s\n" % asset.name)
+            player_mort_assets = self.get_players_mort_assets(player_id)
+            if player_mort_assets == 0:
+                if self.accounts[player_id].isenoughbalance(asset.buy_price):
+                    player_buyconsent = self.PlayerBuyMenu.runMenu() 
+                    if player_buyconsent == 1:
+                        self.accounts[player_id].withdraw(asset.buy_price, "Asset %s purchase from Bank" % asset.name)
+                        self.accounts[0].deposit(asset.buy_price, "Asset %s sale to Player-%d" % (asset.name, player_id))
+                        asset.owner = player_id
+                        self.prop_vacancy_set(player_id, asset)
+                        self.logObj.printer("Purchase done")    
+                        return 0 
+                    else:
+                        self.logObj.printer("Player-%d not interested in purchase." % player_id)
                 else:
-                    self.logObj.printer("Player-%d not interested in purchase." % player_id)
+                    self.logObj.printer("Player-%d has not sufficient balance to buy." % player_id)
             else:
-                self.logObj.printer("Player-%d has not sufficient balance to buy." % player_id)
+                self.logObj.printer('You have already mortgaged %d assets to bank.\nYou can not buy any property till you have any mortgaged one.\n' % player_mort_assets)
         elif asset.owner == player_id:
             self.logObj.printer("You reached on your own property")
         elif asset.owner < 10:

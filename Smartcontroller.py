@@ -165,7 +165,7 @@ class Smartcontroller(object):
             dice_out = self.dice.throw_dice()
             self.logObj.printer("Dice outcome = %d" % dice_out)
             iscrossover = turnplayer.move(dice_out)
-            self.show_board(True)
+            self.show_board("Chance #%d\nPlayer %s, your chance\nDice outcome = %d\n" % (chance, turnplayer.name, dice_out))
             if iscrossover:
                 self.logObj.printer("You received crossover payment of $%d" % Smartcontroller.crossover_amount)
                 res = self.Banker.payreward(turnplayer.id, Smartcontroller.crossover_amount, 'Crossover payment to Player-%d' % turnplayer.id)
@@ -239,7 +239,6 @@ class Smartcontroller(object):
                         self.logObj.printer('Player-%d (%s) is leaving the game.' % (self.turnHolderPlayerID, turnplayer.name))
                         self.logObj.printer('Only %d players left in the game' % (len(self.available_players_id)-1))
                         self.remove_player_from_game(self.turnHolderPlayerID)
-                        self.show_board()
                     elif optionPlayerRecv == 7:
                         if len(self.available_players_id) > 1: 
                             self.save_game(chance)
@@ -314,14 +313,15 @@ class Smartcontroller(object):
         else:
             return -1
 
-    def show_board(self, term_only=False):
+    def show_board(self, msg="", term_only=False):
         if platform.system() == 'Linux':
             _ = os.system('clear')
         else:
-            _ = os.system('cls')    
+            _ = os.system('cls')   
         self.display_board(term_only)
         self.print_all_player_assets_table(term_only)
-
+        self.logObj.printer(msg) 
+        
     def transmit_from_one_to_rest(self, sender, amount, reason_text):
         for i in self.available_players_id:
             if i != sender:

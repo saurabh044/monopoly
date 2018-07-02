@@ -70,17 +70,21 @@ class MenuBox(object):
             selection = 0
             while selection == 0:
                 self.dispMenu()
-                inp = raw_input("Select an option: ")
-                self.logObj.printer("")
-                matchObj = re.match(r'^(\d+)$', inp, re.M | re.I)
-                if matchObj:
-                    if 1 <= int(matchObj.group(1)) <= (len(self.optionList) + self.withExit):
-                        selection = int(inp)
-                        self.logObj.printer("You selected option #%s" % inp)
+                try:
+                    inp = raw_input("Select an option: ")
+                    self.logObj.printer("")
+                    matchObj = re.match(r'^(\d+)$', inp, re.M | re.I)
+                    if matchObj:
+                        if 1 <= int(matchObj.group(1)) <= (len(self.optionList) + self.withExit):
+                            selection = int(inp)
+                            self.logObj.printer("You selected option #%s" % inp)
+                        else:
+                            self.logObj.printer("Please enter valid option.")
                     else:
                         self.logObj.printer("Please enter valid option.")
-                else:
-                    self.logObj.printer("Please enter valid option.")
+                except KeyboardInterrupt:
+                    self.logObj.printer("\n\nCtrl+C entered. Selecting last option as default.")    
+                    return len(self.optionList) + self.withExit
             return selection       
 
 class cursor_cm(object):
