@@ -143,15 +143,7 @@ class Banksmart(object):
         return len([i for i in self.asset_list if i.owner == player_id + 10])        
         
     def get_current_rent_by_assetid(self, id):
-        asset = None
-        for i in self.asset_list:
-            if i.board_loc == id:
-                if i.owner == 0 or i.owner > 10:
-                    return -1
-                else:
-                    asset = i  
-            else:
-                return -1              
+        asset = self.get_asset_by_assetid(id)          
         if asset.issite():
             if asset.prop_count == 0:
                 color_count = len([1 for i in self.asset_list if i.issite() if i.owner == asset.owner and i.color_grp == asset.color_grp])
