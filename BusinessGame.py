@@ -52,8 +52,7 @@ else:
         GameController.addplayersingame()   
 if optionRecv != 4:
     optionGameRecv = GameController.state
-    GameController.display_board()
-    GameController.print_all_player_assets_table()
+    GameController.show_board()
     try:
         while optionGameRecv:
             chanceCount += 1

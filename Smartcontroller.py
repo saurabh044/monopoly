@@ -2,7 +2,9 @@ from MenuBox import MenuBox, Printer, Dice, DBhandler
 from Banksmart import Banksmart
 from Asset import Country, Utility
 import re
-
+import os
+import platform
+from distutils.command.clean import clean
 # Game Board Data
 # key value array of country [boardPosition, buyValue, mortgageValue, colorGroup, basicRent, property_price, property_rent]
 country_list = {"England":   ( 2, 7000, 3500, 1, 700, 7000, 1700),
@@ -195,8 +197,7 @@ class Smartcontroller(object):
                     self.remove_player_from_game(turnplayer.id)
                 else:
                     pass
-            self.display_board()
-            self.print_all_player_assets_table()
+            self.show_board()
             if self.state:
                 optionPlayerRecv = 0
                 while optionPlayerRecv not in (1, 6, 7) :
@@ -234,8 +235,7 @@ class Smartcontroller(object):
                         self.logObj.printer('Player-%d (%s) is leaving the game.' % (self.turnHolderPlayerID, turnplayer.name))
                         self.logObj.printer('Only %d players left in the game' % (len(self.available_players_id)-1))
                         self.remove_player_from_game(self.turnHolderPlayerID)
-                        self.display_board()
-                        self.print_all_player_assets_table()
+                        self.show_board()
                     elif optionPlayerRecv == 7:
                         if len(self.available_players_id) > 1: 
                             self.save_game(chance)
@@ -297,6 +297,14 @@ class Smartcontroller(object):
             return self.Banker.get_owner_by_assetid(playerobj.board_pos)
         else:
             return -1
+
+    def show_board(self):
+        if platform.system() == 'Linux':
+            _ = system('clear')
+        else:
+            _ = system('cls')            
+        self.display_board()
+        self.print_all_player_assets_table()
 
     def transmit_from_one_to_rest(self, sender, amount, reason_text):
         for i in self.available_players_id:
