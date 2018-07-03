@@ -85,7 +85,7 @@ class Banksmart(object):
                 player_props = [i for i in self.asset_list if i.owner == player_id]            
                 if len(player_props) == 0:
                     return False
-                MortMenu = MenuBox('Cash Raise Menu', self.logPath)
+                MortMenu = MenuBox('Player-%d Cash Raise Menu' % player_id, self.logPath)
                 for i in player_props:
                     pname = ""
                     if i.issite():
