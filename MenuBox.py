@@ -1,7 +1,13 @@
 import re
 import random
 import mysql.connector
+from colorama import Fore, Back, Style, init
+color_coded = {1: Back.LIGHTRED_EX, 2: Back.LIGHTGREEN_EX, 3: Back.LIGHTBLUE_EX, 
+               4: Back.LIGHTYELLOW_EX, 5: Back.LIGHTMAGENTA_EX, 6: Back.LIGHTWHITE_EX,
+               7: Back.RESET, 8: Fore.RESET, 9: Fore.BLACK, 10: Fore.LIGHTRED_EX, 11: Fore.LIGHTGREEN_EX, 
+               12: Fore.LIGHTBLUE_EX, 13: Fore.LIGHTYELLOW_EX, 14: Fore.LIGHTMAGENTA_EX, 15: Fore.LIGHTWHITE_EX}
 
+init()
 class Dice(object):
 
     def throw_dice(self):
@@ -45,12 +51,12 @@ class MenuBox(object):
 
     def dispMenu(self):
         counter = 1
-        self.logObj.printer("\n" + self.__Name + "\n" + "-" * len(self.__Name))
+        self.logObj.printer(color_coded[11] + "\n" + self.__Name + "\n" + "-" * len(self.__Name) + color_coded[8])
         for i in self.optionList:
-            self.logObj.printer(str(counter) + ": " + i)
+            self.logObj.printer(color_coded[11] + str(counter) + ": " + i + color_coded[8])
             counter += 1
         if self.withExit == 1:
-            self.logObj.printer(str(counter) + ": " + "Exit")
+            self.logObj.printer(color_coded[11] + str(counter) + ": " + "Exit" + color_coded[8])
        
     def simulate(func):
         def wrapper(self, option=0): return func(self, 1)
@@ -70,19 +76,19 @@ class MenuBox(object):
             while selection == 0:
                 self.dispMenu()
                 try:
-                    inp = raw_input("Select an option: ")
+                    inp = raw_input(color_coded[11] + "Select an option: " + color_coded[8])
                     self.logObj.printer("")
                     matchObj = re.match(r'^(\d+)$', inp, re.M | re.I)
                     if matchObj:
                         if 1 <= int(matchObj.group(1)) <= (len(self.optionList) + self.withExit):
                             selection = int(inp)
-                            self.logObj.printer("You selected option #%s" % inp)
+                            self.logObj.printer(color_coded[11] + "You selected option #%s" % inp + color_coded[8])
                         else:
-                            self.logObj.printer("Please enter valid option.")
+                            self.logObj.printer(color_coded[10] + "Please enter valid option." + color_coded[8])
                     else:
-                        self.logObj.printer("Please enter valid option.")
+                        self.logObj.printer(color_coded[10] + "Please enter valid option." + color_coded[8])
                 except KeyboardInterrupt:
-                    self.logObj.printer("\n\nCtrl+C entered. Selecting last option as default.")    
+                    self.logObj.printer(color_coded[10] + "\n\nCtrl+C entered. Selecting last option as default." + color_coded[8])    
                     return len(self.optionList) + self.withExit
             return selection       
 

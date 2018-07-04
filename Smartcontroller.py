@@ -1,17 +1,12 @@
-from MenuBox import MenuBox, Printer, Dice, DBhandler
+from MenuBox import MenuBox, Printer, Dice, DBhandler, color_coded
 from Banksmart import Banksmart
 from Asset import Country, Utility
 from colorama import init, Fore, Back, Style
 import re
 import os
 import platform
-from _ast import For
 
-init()
-color_coded = {1: Back.LIGHTRED_EX, 2: Back.LIGHTGREEN_EX, 3: Back.LIGHTBLUE_EX, 
-               4: Back.LIGHTYELLOW_EX, 5: Back.LIGHTMAGENTA_EX, 6: Back.LIGHTWHITE_EX,
-               7: Back.RESET, 8: Fore.RESET, 9: Fore.BLACK, 10: Fore.LIGHTRED_EX, 11: Fore.LIGHTGREEN_EX, 
-               12: Fore.LIGHTBLUE_EX, 13: Fore.LIGHTYELLOW_EX, 14: Fore.LIGHTMAGENTA_EX, 15: Fore.LIGHTWHITE_EX}
+
 # Game Board Data
 # key value array of country [boardPosition, buyValue, mortgageValue, colorGroup, basicRent, property_price, property_rent]
 country_list = {"England":   ( 2, 7000, 3500, 1, 700, 7000, 1700),
@@ -43,42 +38,42 @@ utility_list = {"Waterways": (4, 9500, 2000, 1400, 2200, 1),
                 "Petroleum": (32, 5500, 1300, 500, 1000, 3),
                 "Railways": (34, 9500, 5000, 1500, 2500, 2)
                 }
-board_display_data = ((color_coded[6] + color_coded[9] + "             Start" + color_coded[8] + color_coded[7]), 
-                      (color_coded[1] + color_coded[9] + "   England(2) 2500" + color_coded[8] + color_coded[7]), 
-                      (color_coded[2] + color_coded[9] + "      Iraq(3) 5000" + color_coded[8] + color_coded[7]), 
-                      (color_coded[5] + color_coded[9] + " Waterways(4) 9500" + color_coded[8] + color_coded[7]), 
-                      (color_coded[6] + color_coded[9] + "               UNO" + color_coded[8] + color_coded[7]),
-                      (color_coded[1] + color_coded[9] + "    France(6) 2500" + color_coded[8] + color_coded[7]), 
-                      (color_coded[2] + color_coded[9] + "      Iran(7) 2500" + color_coded[8] + color_coded[7]), 
-                      (color_coded[5] + color_coded[9] + " Satellite(8) 2000" + color_coded[8] + color_coded[7]),
-                      (color_coded[2] + color_coded[9] + "     Egypt(9) 3200" + color_coded[8] + color_coded[7]), 
-                      (color_coded[6] + color_coded[9] + "            Resort" + color_coded[8] + color_coded[7]), 
-                      (color_coded[4] + color_coded[9] + "   Canada(11) 4000" + color_coded[8] + color_coded[7]), 
-                      (color_coded[1] + color_coded[9] + "  Germany(12) 3500" + color_coded[8] + color_coded[7]), 
-                      (color_coded[5] + color_coded[9] + " Airways(13) 10500" + color_coded[8] + color_coded[7]), 
-                      (color_coded[6] + color_coded[9] + "       Custom-Duty" + color_coded[8] + color_coded[7]),
-                      (color_coded[1] + color_coded[9] + "    Swiss(15) 3500" + color_coded[8] + color_coded[7]), 
-                      (color_coded[4] + color_coded[9] + "   Brazil(16) 2500" + color_coded[8] + color_coded[7]),
-                      (color_coded[6] + color_coded[9] + "            Chance" + color_coded[8] + color_coded[7]),
-                      (color_coded[1] + color_coded[9] + "    Italy(18) 3500" + color_coded[8] + color_coded[7]), 
-                      (color_coded[6] + color_coded[9] + "       Party-House" + color_coded[8] + color_coded[7]), 
-                      (color_coded[3] + color_coded[9] + "    Japan(20) 2500" + color_coded[8] + color_coded[7]),
-                      (color_coded[4] + color_coded[9] + "      USA(21) 8500" + color_coded[8] + color_coded[7]), 
-                      (color_coded[6] + color_coded[9] + "   Travelling-Duty" + color_coded[8] + color_coded[7]), 
-                      (color_coded[5] + color_coded[9] + " Roadways(23) 3500" + color_coded[8] + color_coded[7]),
-                      (color_coded[4] + color_coded[9] + "   Mexico(24) 4000" + color_coded[8] + color_coded[7]), 
-                      (color_coded[3] + color_coded[9] + " Hongkong(25) 2000" + color_coded[8] + color_coded[7]), 
-                      (color_coded[6] + color_coded[9] + "               UNO" + color_coded[8] + color_coded[7]), 
-                      (color_coded[4] + color_coded[9] + "Australia(27) 3300" + color_coded[8] + color_coded[7]),
-                      (color_coded[6] + color_coded[9] + "              Jail" + color_coded[8] + color_coded[7]), 
-                      (color_coded[3] + color_coded[9] + "    India(29) 5500" + color_coded[8] + color_coded[7]), 
-                      (color_coded[6] + color_coded[9] + "            Chance" + color_coded[8] + color_coded[7]), 
-                      (color_coded[2] + color_coded[9] + "SaudiArab(31) 5500" + color_coded[8] + color_coded[7]),
-                      (color_coded[5] + color_coded[9] + "Petroleum(32) 5500" + color_coded[8] + color_coded[7]),
-                      (color_coded[3] + color_coded[9] + "    China(33) 4500" + color_coded[8] + color_coded[7]), 
-                      (color_coded[5] + color_coded[9] + " Railways(34) 9500" + color_coded[8] + color_coded[7]), 
-                      (color_coded[2] + color_coded[9] + " Malaysia(35) 1500" + color_coded[8] + color_coded[7]), 
-                      (color_coded[3] + color_coded[9] + "Singapore(36) 3000" + color_coded[8] + color_coded[7]))
+board_display_data = ((color_coded[6] + color_coded[9] + "1-Start           " + color_coded[8] + color_coded[7]), 
+                      (color_coded[1] + color_coded[9] + "2-England    $2500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[2] + color_coded[9] + "3-Iraq       $5000" + color_coded[8] + color_coded[7]), 
+                      (color_coded[5] + color_coded[9] + "4-Waterways  $9500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[6] + color_coded[9] + "5-UNO             " + color_coded[8] + color_coded[7]),
+                      (color_coded[1] + color_coded[9] + "6-France     $2500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[2] + color_coded[9] + "7-Iran       $2500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[5] + color_coded[9] + "8-Satellite  $2000" + color_coded[8] + color_coded[7]),
+                      (color_coded[2] + color_coded[9] + "9-Egypt      $3200" + color_coded[8] + color_coded[7]), 
+                      (color_coded[6] + color_coded[9] + "10-Resort         " + color_coded[8] + color_coded[7]), 
+                      (color_coded[4] + color_coded[9] + "11-Canada    $4000" + color_coded[8] + color_coded[7]), 
+                      (color_coded[1] + color_coded[9] + "12-Germany   $3500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[5] + color_coded[9] + "13-Airways  $10500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[6] + color_coded[9] + "14-Custom Duty    " + color_coded[8] + color_coded[7]),
+                      (color_coded[1] + color_coded[9] + "15-Swiss     $3500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[4] + color_coded[9] + "16-Brazil    $2500" + color_coded[8] + color_coded[7]),
+                      (color_coded[6] + color_coded[9] + "17-Chance         " + color_coded[8] + color_coded[7]),
+                      (color_coded[1] + color_coded[9] + "18-Italy     $3500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[6] + color_coded[9] + "19-Party House    " + color_coded[8] + color_coded[7]), 
+                      (color_coded[3] + color_coded[9] + "20-Japan     $2500" + color_coded[8] + color_coded[7]),
+                      (color_coded[4] + color_coded[9] + "21-USA       $8500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[6] + color_coded[9] + "22-Travel Duty    " + color_coded[8] + color_coded[7]), 
+                      (color_coded[5] + color_coded[9] + "23-Roadways  $3500" + color_coded[8] + color_coded[7]),
+                      (color_coded[4] + color_coded[9] + "24-Mexico    $4000" + color_coded[8] + color_coded[7]), 
+                      (color_coded[3] + color_coded[9] + "25-Hongkong  $2000" + color_coded[8] + color_coded[7]), 
+                      (color_coded[6] + color_coded[9] + "26-UNO            " + color_coded[8] + color_coded[7]), 
+                      (color_coded[4] + color_coded[9] + "27-Australia $3300" + color_coded[8] + color_coded[7]),
+                      (color_coded[6] + color_coded[9] + "28-Jail           " + color_coded[8] + color_coded[7]), 
+                      (color_coded[3] + color_coded[9] + "29-India     $5500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[6] + color_coded[9] + "30-Chance         " + color_coded[8] + color_coded[7]), 
+                      (color_coded[2] + color_coded[9] + "31-SaudiArab $5500" + color_coded[8] + color_coded[7]),
+                      (color_coded[5] + color_coded[9] + "32-Petroleum $5500" + color_coded[8] + color_coded[7]),
+                      (color_coded[3] + color_coded[9] + "33-China     $4500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[5] + color_coded[9] + "34-Railways  $9500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[2] + color_coded[9] + "35-Malaysia  $1500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[3] + color_coded[9] + "36-Singapore $3000" + color_coded[8] + color_coded[7]))
                       
 assets_board_locations = { 2: "    ",  3: "    ",  4: "    ",  6: "    ",
                            7: "    ",  8: "    ",  9: "    ", 11: "    ",
@@ -155,11 +150,11 @@ class Smartcontroller(object):
             self.turnHolderPlayerID = self.available_players_id[next_players_index]
 
     def print_winner(self, name):
-        self.logObj.printer(("*" * 30 + "\n") * 2+ "The winner is %s\n" % name + ("*" * 30 + "\n") * 2)            
+        self.logObj.printer(color_coded[11] + ("*" * 30 + "\n") * 2 + "The winner is %s\n" % name + ("*" * 30 + "\n") * 2 + color_coded[8])            
 
     def remove_player_from_game(self, player_id):
         if player_id == 0:
-            self.logObj.printer("Bank is out of cash.")
+            self.logObj.printer(color_coded[10] +"Bank is out of cash." + color_coded[8])
             self.state = False         
             self.print_winner(self.get_winner())
         else:
@@ -177,17 +172,17 @@ class Smartcontroller(object):
                 self.print_winner(self.players[self.available_players_id[0]-1].name)
                 
     def next_move(self, chance):
-        self.logObj.printer("Chance #%d" % chance)
+        self.logObj.printer(color_coded[11] + "Chance #%d" % chance + color_coded[8])
         if self.state:
             self.set_turn(1)
         turnplayer = self.players[self.turnHolderPlayerID-1]
-        self.logObj.printer("Player %s, your chance" % turnplayer.name) 
+        self.logObj.printer(color_coded[11] + "Player %s, your chance" % turnplayer.name + color_coded[8]) 
         optionGameRecv = 1
         if optionGameRecv == 1:
             dice_out = self.dice.throw_dice()
             self.logObj.printer("Dice outcome = %d" % dice_out)
             iscrossover = turnplayer.move(dice_out)
-            self.show_board("Chance #%d\nPlayer %s, your chance\nDice outcome = %d\n" % (chance, turnplayer.name, dice_out))
+            self.show_board(color_coded[11] + "Chance #%d\nPlayer %s, your chance\nDice outcome = %d\n" % (chance, turnplayer.name, dice_out) + color_coded[8])
             if iscrossover:
                 self.logObj.printer(color_coded[11]+ "You received crossover payment of $%d" % Smartcontroller.crossover_amount + color_coded[8])
                 res = self.Banker.payreward(turnplayer.id, Smartcontroller.crossover_amount, 'Crossover payment to Player-%d' % turnplayer.id)
@@ -308,14 +303,21 @@ class Smartcontroller(object):
             loc = loc + "    " * (self.player_count - len(pp))
             self.BoardData[i+1] = [board_display_data[i], owner_tag, loc]
             i += 1
-        output += '-' * 168 + '\n'
+        pl_col_len = 133 + 16*(self.player_count-2)
+        output += '-' * pl_col_len + '\n'
+        output += "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|\n" % (
+                                'Location          ', 'Own ', 'Player  ' + ' '*4*(self.player_count-2), 
+                                'Location          ', 'Own ', 'Player  ' + ' '*4*(self.player_count-2),
+                                'Location          ', 'Own ', 'Player  ' + ' '*4*(self.player_count-2),
+                                'Location          ', 'Own ', 'Player  ' + ' '*4*(self.player_count-2))
+        output += '-' * pl_col_len + '\n'
         for i in range(9):
-            output += "|%s|%s|%s |%s|%s|%s |%s|%s|%s |%s|%s|%s|\n" % (
+            output += "|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s|\n" % (
                                 self.BoardData[i + 1][0], self.BoardData[i + 1][1], self.BoardData[i + 1][2], 
                                 self.BoardData[i + 10][0], self.BoardData[i + 10][1],self.BoardData[i + 10][2],
                                 self.BoardData[i + 19][0], self.BoardData[i + 19][1],self.BoardData[i + 19][2],
                                 self.BoardData[i + 28][0], self.BoardData[i + 28][1],self.BoardData[i + 28][2])
-        output += '-' * 168 + '\n'
+        output += '-' * pl_col_len + '\n'
         if term_only is False:
             self.logObj.printer(output)
         else:
@@ -521,7 +523,7 @@ class Smartcontroller(object):
           
     def addplayersingame(self):
         for i in range(self.player_count):
-            inp = raw_input("Enter name for Player-%d : " % (i+1)) 
+            inp = raw_input(color_coded[11] + "Enter name for Player-%d : " % (i+1) + color_coded[8] ) 
             self.players.append(Smartplayer(i+1, str(inp), self.logPath)) 
             self.available_players_id.append(i+1)
         # Initialize the bank cash reserve with $1000000
@@ -532,7 +534,7 @@ class Smartcontroller(object):
             res = self.Banker.payreward(i+1, 25000, "Initial Payment - Player-%d" % (i+1)) 
 
     def save_game(self, chance_count):
-        self.logObj.printer("Saving game data into database...")
+        self.logObj.printer(color_coded[11] + "Saving game data into database..." + color_coded[8])
         try:
             dx = DBhandler(self.dbuser, self.dbpassword)
             if dx.isDBexist('monopoly_game_db') == 1:

@@ -1,20 +1,22 @@
 from Smartcontroller import Smartcontroller
-from MenuBox import MenuBox, Printer, DBhandler
+from MenuBox import MenuBox, Printer, DBhandler, color_coded
+from colorama import init, Fore, Back, Style
 import os
+
 
 if not os.path.exists("business_game_logs"): os.makedirs("business_game_logs")
 logPath = "./business_game_logs/business.logs"
 p = Printer(logPath)
 try:
-    dbuser = raw_input("Enter the username for MySQL DB (default root): ")
+    dbuser = raw_input(color_coded[11] + "Enter the username for MySQL DB (default root): " + color_coded[8])
     if dbuser == "": dbuser = 'root'
-    dbpassword = raw_input("Enter the password for MySQL DB (default root): ")
+    dbpassword = raw_input(color_coded[11] +"Enter the password for MySQL DB (default root): " + color_coded[8])
     if dbpassword == "": dbpassword = 'root'
     dx = None
     try:
         dx = DBhandler(dbuser, dbpassword)
     except:
-        p.printer("Connection failed to MySQL server. You will not be able to save the ongoing game for later.")
+        p.printer(color_coded[10] + "Connection failed to MySQL server. You will not be able to save the ongoing game for later." + color_coded[8])
     gameretrieve = MenuBox("MONOPOLY GAME", logPath)
     gameStartMenu = MenuBox("Start Game:", logPath)
     gameStartMenu.addOptions(["4 Player ", "3 Player ", "2 Player "])
@@ -34,7 +36,7 @@ try:
                 GameController.setprevgame() 
                 optionRecv = 5 - players_count
             else:
-                p.printer("Unable to retrieve any saved game.") 
+                p.printer(color_coded[10] + "Unable to retrieve any saved game." + color_coded[8]) 
         elif option == 2:
             with open(logPath, 'w') as fH: pass
             optionRecv = gameStartMenu.runMenu()
@@ -49,7 +51,7 @@ try:
         try:
             optionRecv = gameStartMenu.runMenu()
         except KeyboardInterrupt:
-            p.printer("\nYou ended the game abruptly.")
+            p.printer(color_coded[10] + "\nYou ended the game abruptly." + color_coded[8])
         if optionRecv != 4:
             chanceCount = 0    
             GameController = Smartcontroller(5-optionRecv, logPath)
@@ -62,8 +64,8 @@ try:
                 GameController.next_move(chanceCount)
                 optionGameRecv = GameController.state
         except KeyboardInterrupt:
-            p.printer("\n\nYou ended the game abruptly and couldn't be saved.")
+            p.printer(color_coded[10] + "\n\nYou ended the game abruptly and couldn't be saved." + color_coded[8])
     else:
-        p.printer("Exiting the game.")    
+        p.printer(color_coded[11] + "Exiting the game." + color_coded[8])    
 except KeyboardInterrupt:
-    p.printer("\n\nYou ended the game abruptly.") 
+    p.printer(color_coded[10] + "\n\nYou ended the game abruptly." + color_coded[8]) 

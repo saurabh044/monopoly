@@ -1,6 +1,5 @@
-from MenuBox import MenuBox, Printer
-from colorama import init, Fore, Back, Style
-
+from MenuBox import MenuBox, Printer, color_coded
+        
         
 class Account(object):
     
@@ -44,10 +43,7 @@ class Account(object):
         (self.balance, self.state) = new_state
         
 class Banksmart(object):
-    
-    color_coded = {0: Fore.LIGHTRED_EX, 1: Fore.LIGHTGREEN_EX, 2: Fore.LIGHTBLUE_EX,
-                   3: Fore.LIGHTYELLOW_EX, 4: Fore.LIGHTMAGENTA_EX, 5: Fore.RESET}
-    
+        
     def __init__(self, id, logPath):
         self.id = id
         self.asset_list = []
@@ -176,12 +172,12 @@ class Banksmart(object):
                 else:
                     prop_name_list[4].append(i.name + '(m)')
             else: pass
-        return (", ".join([(Banksmart.color_coded[i] + '%s:%d' % (color_code[i], len(prop_name_list[i])) + Fore.RESET) for i in range(5)]) + " ## " + ' '.join([Banksmart.color_coded[i] + '%s:%s' % (color_code[i], ",".join(prop_name_list[i])) + Fore.RESET for i in range(5) if len(prop_name_list[i]) > 0])) 
+        return (", ".join([(color_coded[i+10] + '%s:%d' % (color_code[i], len(prop_name_list[i])) + color_coded[8] ) for i in range(5)]) + " ## " + ' '.join([color_coded[i+10] + '%s:%s' % (color_code[i], ",".join(prop_name_list[i])) + color_coded[8]  for i in range(5) if len(prop_name_list[i]) > 0])) 
                
     def sell_asset_to_player(self, player_id, asset_id):
         asset = self.get_asset_by_assetid(asset_id)
         if asset.owner == 0:
-            self.logObj.printer("You reached on %s\n" % asset.name)
+            self.logObj.printer(color_coded[11] + "You reached on %s\n" % asset.name + color_coded[8])
             player_mort_assets = self.get_players_mort_assets(player_id)
             if player_mort_assets == 0:
                 if self.accounts[player_id].isenoughbalance(asset.buy_price):
@@ -191,19 +187,19 @@ class Banksmart(object):
                         self.accounts[0].deposit(asset.buy_price, "Asset %s sale to Player-%d" % (asset.name, player_id))
                         asset.owner = player_id
                         self.prop_vacancy_set(player_id, asset)
-                        self.logObj.printer(Banksmart.color_coded[1]+ "Purchase done" + Banksmart.color_coded[5])    
+                        self.logObj.printer(color_coded[11]+ "Purchase done" + color_coded[8])    
                         return 0 
                     else:
-                        self.logObj.printer("Player-%d not interested in purchase." % player_id)
+                        self.logObj.printer(color_coded[13] + "Player-%d not interested in purchase." % player_id + color_coded[8] )
                 else:
-                    self.logObj.printer(Banksmart.color_coded[0] + "Player-%d has not sufficient balance to buy." % player_id + Banksmart.color_coded[5])
+                    self.logObj.printer(color_coded[10] + "Player-%d has not sufficient balance to buy." % player_id + color_coded[8])
             else:
-                self.logObj.printer(Banksmart.color_coded[0] + 'You have already mortgaged %d assets to bank.\nYou can not buy any property till you have any mortgaged one.\n' % player_mort_assets + Banksmart.color_coded[5])
+                self.logObj.printer(color_coded[10] + 'You have already mortgaged %d assets to bank.\nYou can not buy any property till you have any mortgaged one.\n' % player_mort_assets + color_coded[8])
         elif asset.owner == player_id:
-            self.logObj.printer(Banksmart.color_coded[1] + "You reached on your own property" + Banksmart.color_coded[5])
+            self.logObj.printer(color_coded[11] + "You reached on your own property" + color_coded[8])
         elif asset.owner < 10:
             rent = self.get_current_rent_by_assetid(asset_id) 
-            self.logObj.printer(Banksmart.color_coded[0] + "You reached on %s which attracts rent of $%d" % (asset.name, rent) + Banksmart.color_coded[5])
+            self.logObj.printer(color_coded[10] + "You reached on %s which attracts rent of $%d" % (asset.name, rent) + color_coded[8])
             if self.accounts[player_id].isenoughbalance(rent) is False:
                 if self.raise_cash(player_id, rent):
                     pass
@@ -213,7 +209,7 @@ class Banksmart(object):
             self.accounts[asset.owner].deposit(rent, "Asset %s rent from Player-%d" % (asset.name, player_id)) 
             return 1 
         else:
-            self.logObj.printer(Banksmart.color_coded[1] + "You reached on a mortgaged property. No need to pay any rent." + Banksmart.color_coded[5])            
+            self.logObj.printer(color_coded[11] + "You reached on a mortgaged property. No need to pay any rent." + color_coded[8])            
         return 1             
         
     
@@ -228,18 +224,18 @@ class Banksmart(object):
                         self.accounts[0].deposit(asset.prop_price, "Building sale to Player-%d" % player_id)
                         self.prop_vacancy_set(player_id, asset)
                         self.prop_sell_set(player_id, asset)
-                        self.logObj.printer(Banksmart.color_coded[1] +"Building purchase done. Remaining balance = $%d" % self.accounts[player_id].balance + Banksmart.color_coded[5]) 
+                        self.logObj.printer(color_coded[11] +"Building purchase done. Remaining balance = $%d" % self.accounts[player_id].balance + color_coded[8]) 
                     except ValueError:
-                        self.logObj.printer(Banksmart.color_coded[0] + "You can not raise more buildings on %s. Already 4." % asset.name + Banksmart.color_coded[5])            
+                        self.logObj.printer(color_coded[10] + "You can not raise more buildings on %s. Already 4." % asset.name + color_coded[8])            
                 else:
-                    self.logObj.printer(Banksmart.color_coded[0] + "You don't have sufficient balance to raise building on %s" % asset.name + Banksmart.color_coded[5])
+                    self.logObj.printer(color_coded[10] + "You don't have sufficient balance to raise building on %s" % asset.name + color_coded[8])
             else:
-                self.logObj.printer(Banksmart.color_coded[0] + "No more building allowed on %s. It has either 4 buildings or more building " \
-                                    "than your other sites of same color." % asset.name + Banksmart.color_coded[5]) 
+                self.logObj.printer(color_coded[10] + "No more building allowed on %s. It has either 4 buildings or more building " \
+                                    "than your other sites of same color." % asset.name + color_coded[8]) 
         elif asset.owner == player_id + 10:
-            self.logObj.printer(Banksmart.color_coded[0] + "You can not raise building on your mortgaged property (%s)." % asset.name + Banksmart.color_coded[5]) 
+            self.logObj.printer(color_coded[10] + "You can not raise building on your mortgaged property (%s)." % asset.name + color_coded[8]) 
         else:
-            self.logObj.printer(Banksmart.color_coded[0] + "You can not raise building on property (%s) as not owner." % asset.name + Banksmart.color_coded[5])
+            self.logObj.printer(color_coded[10] + "You can not raise building on property (%s) as not owner." % asset.name + color_coded[8])
             
            
     def get_building_from_player(self, player_id, asset_id):
@@ -254,16 +250,16 @@ class Banksmart(object):
                         self.accounts[player_id].deposit(sell_price, "Building sale from %s" % asset.name)
                         self.prop_vacancy_set(player_id, asset)
                         self.prop_sell_set(player_id, asset)
-                        self.logObj.printer(Banksmart.color_coded[1] + "Building sell done. Remaining balance = $%d" % self.accounts[player_id].balance + Banksmart.color_coded[5])
+                        self.logObj.printer(color_coded[11] + "Building sell done. Remaining balance = $%d" % self.accounts[player_id].balance + color_coded[8])
                     except ValueError:
-                        self.logObj.printer(Banksmart.color_coded[0] + "You can not sell more buildings on %s. Already 0." % asset.name + Banksmart.color_coded[5])            
+                        self.logObj.printer(color_coded[10] + "You can not sell more buildings on %s. Already 0." % asset.name + color_coded[8])            
                 else:
-                    self.logObj.printer(Banksmart.color_coded[0] + "Bank doesn't have sufficient balance to purchase your building on %s" % asset.name + Banksmart.color_coded[5])
+                    self.logObj.printer(color_coded[10] + "Bank doesn't have sufficient balance to purchase your building on %s" % asset.name + color_coded[8])
             else:
-                self.logObj.printer(Banksmart.color_coded[0] + "You can not sell buildings on %s as it has no building or lesser buildings " \
-                                    "than your other properties of same color." % asset.name + Banksmart.color_coded[5])   
+                self.logObj.printer(color_coded[10] + "You can not sell buildings on %s as it has no building or lesser buildings " \
+                                    "than your other properties of same color." % asset.name + color_coded[8])   
         else:
-            self.logObj.printer(Banksmart.color_coded[0] + "You can not sell buildings on %s as not owner." % asset.name + Banksmart.color_coded[5])     
+            self.logObj.printer(color_coded[10] + "You can not sell buildings on %s as not owner." % asset.name + color_coded[8])     
             raise ValueError
             
     def mortgage_asset_of_player(self, player_id, asset_id):
@@ -275,11 +271,11 @@ class Banksmart(object):
                 asset.prop_vacancy = False
                 self.accounts[0].withdraw(mort_amount, "Asset %s mortgage from Player-%d" % (asset.name, player_id))
                 self.accounts[player_id].deposit(mort_amount, "Asset %s mortgaged to bank" % asset.name)
-                self.logObj.printer(Banksmart.color_coded[1] + "Asset mortgage done. Remaining balance = $%d" % self.accounts[player_id].balance + Banksmart.color_coded[5])
+                self.logObj.printer(color_coded[11] + "Asset mortgage done. Remaining balance = $%d" % self.accounts[player_id].balance + color_coded[8])
             else:
-                self.logObj.printer(Banksmart.color_coded[0] + "Bank doesn't have sufficient balance to give mortgage value of %s" % asset.name + Banksmart.color_coded[5])
+                self.logObj.printer(color_coded[10] + "Bank doesn't have sufficient balance to give mortgage value of %s" % asset.name + color_coded[8])
         else:
-            self.logObj.printer(Banksmart.color_coded[0] + "You can not mortgage other player's asset" + Banksmart.color_coded[5])   
+            self.logObj.printer(color_coded[10] + "You can not mortgage other player's asset" + color_coded[8])   
             print "player id = %d" % player_id
             print "asset id = %d" % asset_id
             raise ValueError
@@ -294,11 +290,11 @@ class Banksmart(object):
                 self.prop_sell_set(player_id, asset)
                 self.accounts[player_id].withdraw(mort_amount, "Asset %s redeemed from Bank" % (asset.name))
                 self.accounts[0].deposit(mort_amount, "Asset %s redeemed by Player-%d" % (asset.name, player_id))
-                self.logObj.printer(Banksmart.color_coded[1] + "Asset redemption done. Remaining balance = $%d" % self.accounts[player_id].balance + Banksmart.color_coded[5])
+                self.logObj.printer(color_coded[11] + "Asset redemption done. Remaining balance = $%d" % self.accounts[player_id].balance + color_coded[8])
             else:
-                self.logObj.printer(Banksmart.color_coded[0] + "Player-%d doesn't have sufficient balance to redeem %s" % (player_id, asset.name) + Banksmart.color_coded[5])
+                self.logObj.printer(color_coded[10] + "Player-%d doesn't have sufficient balance to redeem %s" % (player_id, asset.name) + color_coded[8])
         else:
-            self.logObj.printer(Banksmart.color_coded[0] + "You can not redeem other player's mortgaged asset." % asset.name + Banksmart.color_coded[5])   
+            self.logObj.printer(color_coded[10] + "You can not redeem other player's mortgaged asset." % asset.name + color_coded[8])   
             raise ValueError
 
     def prop_vacancy_set(self, player_id, asset):
