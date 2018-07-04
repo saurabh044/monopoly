@@ -269,18 +269,18 @@ class Smartcontroller(object):
         output = ""
         total_cash_reserver = self.Banker.get_players_balance(0) + reduce(lambda x, y: x + y, [self.Banker.get_players_balance(i.id) for i in self.players if i.active])
         total_asset_reserver = self.Banker.get_players_asset_value(0) + reduce(lambda x, y: x + y, [self.Banker.get_players_asset_value(i.id) for i in self.players if i.active])
-        output += '-' * 122 + '\n'
+        output += '-' * 118 + '\n'
         output += "|PID   |Name      |    Cash| NetWorth |    Assets Counters    |Asset Names                                                \n" 
-        output += '-' * 122 + '\n'
+        output += '-' * 118 + '\n'
         for i in self.players:
             if i.active:
                 output += "|{: <5} |{: <10}|{: >8}|{: >10}|{: <10}\n".format(i.id, i.name, 
                                     self.Banker.get_players_balance(i.id), self.Banker.get_players_asset_value(i.id),
                                     self.Banker.group_wise_asset_list(i.id))
-                output += '-' * 122 + '\n'
+                output += '-' * 118 + '\n'
         output += "|{: <5} |{: <10}|{: >8}|{: >10}|{: <10}\n".format(0, 'Bank',
                             self.Banker.get_players_balance(0), self.Banker.get_players_asset_value(0), self.Banker.group_wise_asset_list(0))
-        output += '-' * 122 + '\n'
+        output += '-' * 118 + '\n'
         if total_cash_reserver != 1000000:
             output += "Cash-Balance issue occurred.\n"
             raise ValueError
