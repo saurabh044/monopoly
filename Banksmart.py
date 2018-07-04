@@ -1,4 +1,6 @@
 from MenuBox import MenuBox, Printer
+from colorama import init, Fore, Back, Style
+
         
 class Account(object):
     
@@ -42,6 +44,8 @@ class Account(object):
         (self.balance, self.state) = new_state
         
 class Banksmart(object):
+    
+    color_coded = {0: Fore.LIGHTRED_EX, 1: Fore.LIGHTGREEN_EX, 2: Fore.LIGHTBLUE_EX, 3: Fore.LIGHTYELLOW_EX, 4: Fore.LIGHTMAGENTA_EX}
     
     def __init__(self, id, logPath):
         self.id = id
@@ -171,8 +175,7 @@ class Banksmart(object):
                 else:
                     prop_name_list[4].append(i.name + '(m)')
             else: pass
-        return (", ".join(['%s:%d' % (color_code[i], len(prop_name_list[i])) for i in range(5)]) + " ## " 
-                + ' '.join(['%s:%s' % (color_code[i], ",".join(prop_name_list[i])) for i in range(5) if len(prop_name_list[i]) > 0])) 
+        return (", ".join([(Banksmart.color_coded[i] + '%s:%d' % (color_code[i], len(prop_name_list[i])) + Fore.RESET) for i in range(5)]) + " ## " + ' '.join([Banksmart.color_coded[i] + '%s:%s' % (color_code[i], ",".join(prop_name_list[i])) + Fore.RESET for i in range(5) if len(prop_name_list[i]) > 0])) 
                
     def sell_asset_to_player(self, player_id, asset_id):
         asset = self.get_asset_by_assetid(asset_id)

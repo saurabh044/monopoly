@@ -8,6 +8,9 @@ import platform
 from _ast import For
 
 init()
+color_coded = {1: Back.LIGHTRED_EX, 2: Back.LIGHTGREEN_EX, 3: Back.LIGHTBLUE_EX, 
+               4: Back.LIGHTYELLOW_EX, 5: Back.LIGHTMAGENTA_EX, 6: Back.LIGHTWHITE_EX,
+               7: Back.RESET, 8: Fore.RESET, 9: Fore.BLACK}
 # Game Board Data
 # key value array of country [boardPosition, buyValue, mortgageValue, colorGroup, basicRent, property_price, property_rent]
 country_list = {"England":   ( 2, 7000, 3500, 1, 700, 7000, 1700),
@@ -39,42 +42,42 @@ utility_list = {"Waterways": (4, 9500, 2000, 1400, 2200, 1),
                 "Petroleum": (32, 5500, 1300, 500, 1000, 3),
                 "Railways": (34, 9500, 5000, 1500, 2500, 2)
                 }
-board_display_data = ((Back.LIGHTWHITE_EX + Fore.BLACK   + "             Start" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTRED_EX + Fore.BLACK     + "   England(2) 2500" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTGREEN_EX + Fore.BLACK   + "      Iraq(3) 5000" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTCYAN_EX + Fore.BLACK    + " Waterways(4) 9500" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "               UNO" + Fore.RESET + Back.RESET),
-                      (Back.LIGHTRED_EX + Fore.BLACK     + "    France(6) 2500" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTGREEN_EX + Fore.BLACK   + "      Iran(7) 2500" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTCYAN_EX + Fore.BLACK    + " Satellite(8) 2000" + Fore.RESET + Back.RESET),
-                      (Back.LIGHTGREEN_EX + Fore.BLACK   + "     Egypt(9) 3200" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "            Resort" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTYELLOW_EX + Fore.BLACK  + "   Canada(11) 4000" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTRED_EX + Fore.BLACK     + "  Germany(12) 3500" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTCYAN_EX + Fore.BLACK    + " Airways(13) 10500" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "       Custom-Duty" + Fore.RESET + Back.RESET),
-                      (Back.LIGHTRED_EX + Fore.BLACK     + "    Swiss(15) 3500" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTYELLOW_EX + Fore.BLACK  + "   Brazil(16) 2500" + Fore.RESET + Back.RESET),
-                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "            Chance" + Fore.RESET + Back.RESET),
-                      (Back.LIGHTRED_EX + Fore.BLACK     + "    Italy(18) 3500" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "       Party-House" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTBLUE_EX + Fore.BLACK    + "    Japan(20) 2500" + Fore.RESET + Back.RESET),
-                      (Back.LIGHTYELLOW_EX + Fore.BLACK  + "      USA(21) 8500" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "   Travelling-Duty" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTCYAN_EX + Fore.BLACK    + " Roadways(23) 3500" + Fore.RESET + Back.RESET),
-                      (Back.LIGHTYELLOW_EX + Fore.BLACK  + "   Mexico(24) 4000" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTBLUE_EX + Fore.BLACK    + " Hongkong(25) 2000" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "               UNO" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTYELLOW_EX + Fore.BLACK  + "Australia(27) 3300" + Fore.RESET + Back.RESET),
-                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "              Jail" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTBLUE_EX + Fore.BLACK    + "    India(29) 5500" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "            Chance" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTGREEN_EX + Fore.BLACK   + "SaudiArab(31) 5500" + Fore.RESET + Back.RESET),
-                      (Back.LIGHTCYAN_EX + Fore.BLACK    + "Petroleum(32) 5500" + Fore.RESET + Back.RESET),
-                      (Back.LIGHTBLUE_EX + Fore.BLACK    + "    China(33) 4500" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTCYAN_EX + Fore.BLACK    + " Railways(34) 9500" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTGREEN_EX + Fore.BLACK   + " Malaysia(35) 1500" + Fore.RESET + Back.RESET), 
-                      (Back.LIGHTBLUE_EX + Fore.BLACK    + "Singapore(36) 3000" + Fore.RESET + Back.RESET))
+board_display_data = ((color_coded[6] + color_coded[9] + "             Start" + color_coded[8] + color_coded[7]), 
+                      (color_coded[1] + color_coded[9] + "   England(2) 2500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[2] + color_coded[9] + "      Iraq(3) 5000" + color_coded[8] + color_coded[7]), 
+                      (color_coded[5] + color_coded[9] + " Waterways(4) 9500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[6] + color_coded[9] + "               UNO" + color_coded[8] + color_coded[7]),
+                      (color_coded[1] + color_coded[9] + "    France(6) 2500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[2] + color_coded[9] + "      Iran(7) 2500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[5] + color_coded[9] + " Satellite(8) 2000" + color_coded[8] + color_coded[7]),
+                      (color_coded[2] + color_coded[9] + "     Egypt(9) 3200" + color_coded[8] + color_coded[7]), 
+                      (color_coded[6] + color_coded[9] + "            Resort" + color_coded[8] + color_coded[7]), 
+                      (color_coded[4] + color_coded[9] + "   Canada(11) 4000" + color_coded[8] + color_coded[7]), 
+                      (color_coded[1] + color_coded[9] + "  Germany(12) 3500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[5] + color_coded[9] + " Airways(13) 10500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[6] + color_coded[9] + "       Custom-Duty" + color_coded[8] + color_coded[7]),
+                      (color_coded[1] + color_coded[9] + "    Swiss(15) 3500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[4] + color_coded[9] + "   Brazil(16) 2500" + color_coded[8] + color_coded[7]),
+                      (color_coded[6] + color_coded[9] + "            Chance" + color_coded[8] + color_coded[7]),
+                      (color_coded[1] + color_coded[9] + "    Italy(18) 3500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[6] + color_coded[9] + "       Party-House" + color_coded[8] + color_coded[7]), 
+                      (color_coded[3] + color_coded[9] + "    Japan(20) 2500" + color_coded[8] + color_coded[7]),
+                      (color_coded[4] + color_coded[9] + "      USA(21) 8500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[6] + color_coded[9] + "   Travelling-Duty" + color_coded[8] + color_coded[7]), 
+                      (color_coded[5] + color_coded[9] + " Roadways(23) 3500" + color_coded[8] + color_coded[7]),
+                      (color_coded[4] + color_coded[9] + "   Mexico(24) 4000" + color_coded[8] + color_coded[7]), 
+                      (color_coded[3] + color_coded[9] + " Hongkong(25) 2000" + color_coded[8] + color_coded[7]), 
+                      (color_coded[6] + color_coded[9] + "               UNO" + color_coded[8] + color_coded[7]), 
+                      (color_coded[4] + color_coded[9] + "Australia(27) 3300" + color_coded[8] + color_coded[7]),
+                      (color_coded[6] + color_coded[9] + "              Jail" + color_coded[8] + color_coded[7]), 
+                      (color_coded[3] + color_coded[9] + "    India(29) 5500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[6] + color_coded[9] + "            Chance" + color_coded[8] + color_coded[7]), 
+                      (color_coded[2] + color_coded[9] + "SaudiArab(31) 5500" + color_coded[8] + color_coded[7]),
+                      (color_coded[5] + color_coded[9] + "Petroleum(32) 5500" + color_coded[8] + color_coded[7]),
+                      (color_coded[3] + color_coded[9] + "    China(33) 4500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[5] + color_coded[9] + " Railways(34) 9500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[2] + color_coded[9] + " Malaysia(35) 1500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[3] + color_coded[9] + "Singapore(36) 3000" + color_coded[8] + color_coded[7]))
                       
 assets_board_locations = { 2: "    ",  3: "    ",  4: "    ",  6: "    ",
                            7: "    ",  8: "    ",  9: "    ", 11: "    ",
@@ -86,7 +89,7 @@ assets_board_locations = { 2: "    ",  3: "    ",  4: "    ",  6: "    ",
 
 class Smartplayer(object):
     
-    
+
     def __init__(self, id, name, logPath, active=True):
         self.id = id
         self.name = name
@@ -161,7 +164,7 @@ class Smartcontroller(object):
         else:
             res = self.Banker.bankrupt_a_player(player_id)
             for i in res:
-                assets_board_locations[i] = ""
+                assets_board_locations[i] = "    "
             self.players[player_id-1].active = False
             self.players[player_id-1].board_pos = 0
             if len(self.available_players_id) >= 2:
@@ -213,7 +216,7 @@ class Smartcontroller(object):
             else:
                 result = self.Banker.sell_asset_to_player(turnplayer.id, turnplayer.board_pos)
                 if result == 0:
-                    assets_board_locations[turnplayer.board_pos] = Smartcontroller.color_code[turnplayer.id] + "|P%d|" % turnplayer.id + Fore.RESET
+                    assets_board_locations[turnplayer.board_pos] = Smartcontroller.color_code[turnplayer.id] + "|P%d|" % turnplayer.id + color_coded[8]
                 elif result == -1:
                     self.remove_player_from_game(turnplayer.id)
                 else:
@@ -289,28 +292,29 @@ class Smartcontroller(object):
         else: print output
                         
     def display_board(self, term_only):
-        output = ' ' * 70 + '-' * 28 + '\n' + ' ' * 73 +  Back.LIGHTRED_EX + Fore.BLACK  + 'INTERNATIONAL BUSINESS' + Fore.RESET + Back.RESET +'\n' + ' ' * 70 + '-' * 28 + '\n'      
+        output = ' ' * 70 + '-' * 28 + '\n' + ' ' * 73 +  color_coded[1] + color_coded[9]  + 'INTERNATIONAL BUSINESS' + color_coded[8] + color_coded[7] +'\n' + ' ' * 70 + '-' * 28 + '\n'      
         i = 0
         while i < len(board_display_data):
             pp = self.check_all_player_presence_on_a_position(i+1)
             if (i+1) in assets_board_locations:
                 owner_tag = assets_board_locations[i+1]
             else:
-                owner_tag = ""
+                owner_tag = "    "
             loc = ""
             for j in range(len(pp)):
                 if pp[j]:
-                    loc = loc + Smartcontroller.color_code[pp[j].id] + "<P" + str(pp[j].id) + ">" + Fore.RESET
+                    loc = loc + Smartcontroller.color_code[pp[j].id] + "<P" + str(pp[j].id) + ">" + color_coded[8]
+            loc = loc + "    " * (self.player_count - len(pp))
             self.BoardData[i+1] = [board_display_data[i], owner_tag, loc]
             i += 1
-        output += '-' * 168 + '\n'
+        output += '-' * 163 + '\n'
         for i in range(9):
             output += "%s %s %s %s %s %s %s %s %s %s %s %s\n" % (
                                 self.BoardData[i + 1][0], self.BoardData[i + 1][1], self.BoardData[i + 1][2], 
                                 self.BoardData[i + 10][0], self.BoardData[i + 10][1],self.BoardData[i + 10][2],
                                 self.BoardData[i + 19][0], self.BoardData[i + 19][1],self.BoardData[i + 19][2],
                                 self.BoardData[i + 28][0], self.BoardData[i + 28][1],self.BoardData[i + 28][2])
-        output += '-' * 168 + '\n'
+        output += '-' * 163 + '\n'
         if term_only is False:
             self.logObj.printer(output)
         else:
@@ -563,7 +567,7 @@ class Smartcontroller(object):
     def set_owner_in_asset(self, board_pos, plid):
         if plid > 0:
             if plid > 10: plid -= 10
-            assets_board_locations[board_pos] =  Smartcontroller.color_code[plid] + "|P%d|" % plid + Fore.RESET
+            assets_board_locations[board_pos] =  Smartcontroller.color_code[plid] + "|P%d|" % plid + color_coded[8]
 
     def setprevgame(self):
         try:
