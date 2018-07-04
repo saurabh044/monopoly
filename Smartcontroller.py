@@ -293,7 +293,7 @@ class Smartcontroller(object):
         else: print output
                         
     def display_board(self, term_only):
-        output = ' ' * 70 + '-' * 28 + '\n' + ' ' * 73 +  color_coded[1] + color_coded[9]  + 'INTERNATIONAL BUSINESS' + color_coded[8] + color_coded[7] +'\n' + ' ' * 70 + '-' * 28 + '\n'      
+        output = ' ' * 71 + '-' * 24 + '\n' + ' ' * 71 +  color_coded[1] + color_coded[9]  + '|INTERNATIONAL BUSINESS|' + color_coded[8] + color_coded[7] +'\n' + ' ' * 71 + '-' * 24 + '\n'      
         i = 0
         while i < len(board_display_data):
             pp = self.check_all_player_presence_on_a_position(i+1)
@@ -308,14 +308,14 @@ class Smartcontroller(object):
             loc = loc + "    " * (self.player_count - len(pp))
             self.BoardData[i+1] = [board_display_data[i], owner_tag, loc]
             i += 1
-        output += '-' * 163 + '\n'
+        output += '-' * 168 + '\n'
         for i in range(9):
-            output += "%s %s %s %s %s %s %s %s %s %s %s %s\n" % (
+            output += "|%s|%s|%s |%s|%s|%s |%s|%s|%s |%s|%s|%s|\n" % (
                                 self.BoardData[i + 1][0], self.BoardData[i + 1][1], self.BoardData[i + 1][2], 
                                 self.BoardData[i + 10][0], self.BoardData[i + 10][1],self.BoardData[i + 10][2],
                                 self.BoardData[i + 19][0], self.BoardData[i + 19][1],self.BoardData[i + 19][2],
                                 self.BoardData[i + 28][0], self.BoardData[i + 28][1],self.BoardData[i + 28][2])
-        output += '-' * 163 + '\n'
+        output += '-' * 168 + '\n'
         if term_only is False:
             self.logObj.printer(output)
         else:
