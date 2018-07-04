@@ -168,11 +168,14 @@ class Banksmart(object):
                     prop_name_list[4].append(i.name)
             elif i.owner == player_id + 10:
                 if i.issite():
-                    prop_name_list[i.color_grp-1].append(i.get_name_with_prop_flag() + '(m)')
+                    prop_name_list[i.color_grp-1].append(i.get_name_with_prop_flag() + '(m-%d)' % (i.mortgage_val * 1.1))
                 else:
-                    prop_name_list[4].append(i.name + '(m)')
+                    prop_name_list[4].append(i.name + '(m-%d)' % (i.mortgage_val * 1.1))
             else: pass
-        return (", ".join([(color_coded[i+10] + '%s:%d' % (color_code[i], len(prop_name_list[i])) + color_coded[8] ) for i in range(5)]) + "|" + ('\n|      |          |        |          |'+' '*23+'|').join([color_coded[i+10] + '%s' % (",".join(prop_name_list[i])) + color_coded[8]  for i in range(5) if len(prop_name_list[i]) > 0])) 
+        return (", ".join([(color_coded[i+10] + '%s:%d' % (color_code[i], 
+                len(prop_name_list[i])) + color_coded[8] ) for i in range(5)]) + 
+                "|" + ('\n|      |          |        |          |'+' '*23+'|').join([color_coded[i+10] +
+                 '%s' % (",".join(prop_name_list[i])) + color_coded[8]  for i in range(5) if len(prop_name_list[i]) > 0])) 
                
     def sell_asset_to_player(self, player_id, asset_id):
         asset = self.get_asset_by_assetid(asset_id)
