@@ -1,9 +1,12 @@
 from MenuBox import MenuBox, Printer, Dice, DBhandler
 from Banksmart import Banksmart
 from Asset import Country, Utility
+from colorama import init, Fore, Back, Style
 import re
 import os
 import platform
+
+init()
 # Game Board Data
 # key value array of country [boardPosition, buyValue, mortgageValue, colorGroup, basicRent, property_price, property_rent]
 country_list = {"England":   ( 2, 7000, 3500, 1, 700, 7000, 1700),
@@ -258,7 +261,7 @@ class Smartcontroller(object):
         else: print output
                         
     def display_board(self, term_only):
-        output = ' ' * 70 + '-' * 28 + '\n' + ' ' * 73 +  'INTERNATIONAL BUSINESS' + '\n' + ' ' * 70 + '-' * 28 + '\n'      
+        output = ' ' * 70 + '-' * 28 + '\n' + ' ' * 73 +  Fore.LIGHTRED_EX + 'INTERNATIONAL BUSINESS' + Fore.RESET +'\n' + ' ' * 70 + '-' * 28 + '\n'      
         i = 0
         while i < len(board_display_data):
             pp = self.check_all_player_presence_on_a_position(i+1)
