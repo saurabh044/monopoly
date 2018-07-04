@@ -76,15 +76,16 @@ board_display_data = ((Back.LIGHTWHITE_EX + Fore.BLACK   + "             Start" 
                       (Back.LIGHTGREEN_EX + Fore.BLACK   + " Malaysia(35) 1500" + Fore.RESET + Back.RESET), 
                       (Back.LIGHTBLUE_EX + Fore.BLACK    + "Singapore(36) 3000" + Fore.RESET + Back.RESET))
                       
-assets_board_locations = { 2: "",  3: "",  4: "",  6: "",
-                           7: "",  8: "",  9: "", 11: "",
-                          12: "", 13: "", 15: "", 16: "",
-                          18: "", 20: "", 21: "", 23: "",
-                          24: "", 25: "", 27: "", 29: "",
-                          31: "", 32: "", 33: "", 34: "",
-                          35: "", 36: ""}
+assets_board_locations = { 2: "    ",  3: "    ",  4: "    ",  6: "    ",
+                           7: "    ",  8: "    ",  9: "    ", 11: "    ",
+                          12: "    ", 13: "    ", 15: "    ", 16: "    ",
+                          18: "    ", 20: "    ", 21: "    ", 23: "    ",
+                          24: "    ", 25: "    ", 27: "    ", 29: "    ",
+                          31: "    ", 32: "    ", 33: "    ", 34: "    ",
+                          35: "    ", 36: "    "}
 
 class Smartplayer(object):
+    
     
     def __init__(self, id, name, logPath, active=True):
         self.id = id
@@ -107,7 +108,9 @@ class Smartplayer(object):
             
 class Smartcontroller(object):
 
+    color_code = {1: Fore.LIGHTRED_EX, 2: Fore.LIGHTGREEN_EX, 3: Fore.LIGHTBLUE_EX, 4: Fore.LIGHTYELLOW_EX}
     crossover_amount = 100
+    
     def __init__(self, player_count, log_path, user=None, password=None):       
         self.logPath = log_path
         self.dbuser = user
@@ -210,8 +213,7 @@ class Smartcontroller(object):
             else:
                 result = self.Banker.sell_asset_to_player(turnplayer.id, turnplayer.board_pos)
                 if result == 0:
-                    color_code = {1: Fore.LIGHTRED_EX, 2: Fore.LIGHTGREEN, 3: Fore.LIGHTBLUE, 4: Fore.LIGHTYELLOW}
-                    assets_board_locations[turnplayer.board_pos] = color_code[turnplayer.id] + "|P%d|" % turnplayer.id + Fore.RESET
+                    assets_board_locations[turnplayer.board_pos] = Smartcontroller.color_code[turnplayer.id] + "|P%d|" % turnplayer.id + Fore.RESET
                 elif result == -1:
                     self.remove_player_from_game(turnplayer.id)
                 else:
@@ -298,16 +300,16 @@ class Smartcontroller(object):
             loc = ""
             for j in range(len(pp)):
                 if pp[j]:
-                    loc = loc + "<P" + str(pp[j].id) + ">"
+                    loc = loc + Smartcontroller.color_code[pp[j].id] + "<P" + str(pp[j].id) + ">" + Fore.RESET
             self.BoardData[i+1] = [board_display_data[i], owner_tag, loc]
             i += 1
         output += '-' * 168 + '\n'
         for i in range(9):
-            output += "{: >20} {: <6} {: <16} {: >20} {: <6} {: <16} {: >20} {: <6} {: <16} {: >20} {: <6} {: <16}\n".format(
+            output += "%s %s %s %s %s %s %s %s %s %s %s %s\n" % (
                                 self.BoardData[i + 1][0], self.BoardData[i + 1][1], self.BoardData[i + 1][2], 
                                 self.BoardData[i + 10][0], self.BoardData[i + 10][1],self.BoardData[i + 10][2],
                                 self.BoardData[i + 19][0], self.BoardData[i + 19][1],self.BoardData[i + 19][2],
-                                self.BoardData[i + 28][0], self.BoardData[i + 28][1],self.BoardData[i + 28][2],)
+                                self.BoardData[i + 28][0], self.BoardData[i + 28][1],self.BoardData[i + 28][2])
         output += '-' * 168 + '\n'
         if term_only is False:
             self.logObj.printer(output)
@@ -561,7 +563,7 @@ class Smartcontroller(object):
     def set_owner_in_asset(self, board_pos, plid):
         if plid > 0:
             if plid > 10: plid -= 10
-            assets_board_locations[board_pos] = "|P%d|" % plid
+            assets_board_locations[board_pos] =  Smartcontroller.color_code[plid] + "|P%d|" % plid + Fore.RESET
 
     def setprevgame(self):
         try:
