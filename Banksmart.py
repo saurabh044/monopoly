@@ -172,7 +172,7 @@ class Banksmart(object):
                 else:
                     prop_name_list[4].append(i.name + '(m)')
             else: pass
-        return (", ".join([(color_coded[i+10] + '%s:%d' % (color_code[i], len(prop_name_list[i])) + color_coded[8] ) for i in range(5)]) + " ## " + ' '.join([color_coded[i+10] + '%s:%s' % (color_code[i], ",".join(prop_name_list[i])) + color_coded[8]  for i in range(5) if len(prop_name_list[i]) > 0])) 
+        return (", ".join([(color_coded[i+10] + '%s:%d' % (color_code[i], len(prop_name_list[i])) + color_coded[8] ) for i in range(5)]) + "|" + ('\n|      |          |        |          |'+' '*23+'|').join([color_coded[i+10] + '%s' % (",".join(prop_name_list[i])) + color_coded[8]  for i in range(5) if len(prop_name_list[i]) > 0])) 
                
     def sell_asset_to_player(self, player_id, asset_id):
         asset = self.get_asset_by_assetid(asset_id)

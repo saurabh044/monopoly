@@ -269,15 +269,18 @@ class Smartcontroller(object):
         output = ""
         total_cash_reserver = self.Banker.get_players_balance(0) + reduce(lambda x, y: x + y, [self.Banker.get_players_balance(i.id) for i in self.players if i.active])
         total_asset_reserver = self.Banker.get_players_asset_value(0) + reduce(lambda x, y: x + y, [self.Banker.get_players_asset_value(i.id) for i in self.players if i.active])
-        output += "{: <5} {: <10} {: >8} {: >10} {: <10}\n".format("PID", "Name", "Cash", "NetWorth", "Assets")
+        output += '-' * 122 + '\n'
+        output += "|PID   |Name      |    Cash| NetWorth |    Assets Counters    |Asset Names                                                \n" 
+        output += '-' * 122 + '\n'
         for i in self.players:
             if i.active:
-                output += "{: <5} {: <10} {: >8} {: >10} {: <10}\n".format(i.id, i.name, 
+                output += "|{: <5} |{: <10}|{: >8}|{: >10}|{: <10}\n".format(i.id, i.name, 
                                     self.Banker.get_players_balance(i.id), self.Banker.get_players_asset_value(i.id),
                                     self.Banker.group_wise_asset_list(i.id))
-        output += "{: <5} {: <10} {: >8} {: >10} {: <10}\n".format("BID", "Name", "Cash", "NetWorth", "Assets")
-        output += "{: <5} {: <10} {: >8} {: >10} {: <10}\n".format(0, 'Bank',
+                output += '-' * 122 + '\n'
+        output += "|{: <5} |{: <10}|{: >8}|{: >10}|{: <10}\n".format(0, 'Bank',
                             self.Banker.get_players_balance(0), self.Banker.get_players_asset_value(0), self.Banker.group_wise_asset_list(0))
+        output += '-' * 122 + '\n'
         if total_cash_reserver != 1000000:
             output += "Cash-Balance issue occurred.\n"
             raise ValueError
@@ -524,7 +527,7 @@ class Smartcontroller(object):
     def addplayersingame(self):
         for i in range(self.player_count):
             inp = raw_input(color_coded[11] + "Enter name for Player-%d : " % (i+1) + color_coded[8] ) 
-            self.players.append(Smartplayer(i+1, str(inp), self.logPath)) 
+            self.players.append(Smartplayer(i+1, str(inp)[0:10], self.logPath)) 
             self.available_players_id.append(i+1)
         # Initialize the bank cash reserve with $1000000
         self.Banker.add_players_accounts(self.player_count)
