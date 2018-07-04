@@ -5,6 +5,7 @@ from colorama import init, Fore, Back, Style
 import re
 import os
 import platform
+from _ast import For
 
 init()
 # Game Board Data
@@ -38,19 +39,43 @@ utility_list = {"Waterways": (4, 9500, 2000, 1400, 2200, 1),
                 "Petroleum": (32, 5500, 1300, 500, 1000, 3),
                 "Railways": (34, 9500, 5000, 1500, 2500, 2)
                 }
-board_display_data = ("Start", "England(2) R-2500", "Iraq(3) G-5000", 
-                      "Waterways(4) U-9500", "UNO",
-                      "France(6) R-2500", "Iran(7) G-2500", "Satellite(8) U-2000",
-                      "Egypt(9) G-3200", "Resort", "Canada(11) Y-4000", 
-                      "Germany(12) R-3500", "Airways(13) U-10500", "Custom-Duty",
-                      "Swiss(15) R-3500", "Brazil(16) Y-2500", "Chance",
-                      "Italy(18) R-3500", "Party-House", "Japan(20) B-2500",
-                      "USA(21) Y-8500", "Travelling-Duty", "Roadways(23) U-3500",
-                      "Mexico(24) Y-4000", "Hongkong(25) B-2000", "UNO", 
-                      "Australia(27) Y-3300", "Jail", "India(29) B-5500", "Chance", 
-                      "SaudiArab(31) G-5500", "Petroleum(32) U-5500", "China(33) B-4500", 
-                      "Railways(34) U-9500", "Malaysia(35) G-1500", 
-                      "Singapore(36) B-3000")
+board_display_data = ((Back.LIGHTWHITE_EX + Fore.BLACK   + "             Start" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTRED_EX + Fore.BLACK     + "   England(2) 2500" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTGREEN_EX + Fore.BLACK   + "      Iraq(3) 5000" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTCYAN_EX + Fore.BLACK    + " Waterways(4) 9500" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "               UNO" + Fore.RESET + Back.RESET),
+                      (Back.LIGHTRED_EX + Fore.BLACK     + "    France(6) 2500" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTGREEN_EX + Fore.BLACK   + "      Iran(7) 2500" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTCYAN_EX + Fore.BLACK    + " Satellite(8) 2000" + Fore.RESET + Back.RESET),
+                      (Back.LIGHTGREEN_EX + Fore.BLACK   + "     Egypt(9) 3200" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "            Resort" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTYELLOW_EX + Fore.BLACK  + "   Canada(11) 4000" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTRED_EX + Fore.BLACK     + "  Germany(12) 3500" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTCYAN_EX + Fore.BLACK    + " Airways(13) 10500" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "       Custom-Duty" + Fore.RESET + Back.RESET),
+                      (Back.LIGHTRED_EX + Fore.BLACK     + "    Swiss(15) 3500" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTYELLOW_EX + Fore.BLACK  + "   Brazil(16) 2500" + Fore.RESET + Back.RESET),
+                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "            Chance" + Fore.RESET + Back.RESET),
+                      (Back.LIGHTRED_EX + Fore.BLACK     + "    Italy(18) 3500" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "       Party-House" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTBLUE_EX + Fore.BLACK    + "    Japan(20) 2500" + Fore.RESET + Back.RESET),
+                      (Back.LIGHTYELLOW_EX + Fore.BLACK  + "      USA(21) 8500" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "   Travelling-Duty" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTCYAN_EX + Fore.BLACK    + " Roadways(23) 3500" + Fore.RESET + Back.RESET),
+                      (Back.LIGHTYELLOW_EX + Fore.BLACK  + "   Mexico(24) 4000" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTBLUE_EX + Fore.BLACK    + " Hongkong(25) 2000" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "               UNO" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTYELLOW_EX + Fore.BLACK  + "Australia(27) 3300" + Fore.RESET + Back.RESET),
+                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "              Jail" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTBLUE_EX + Fore.BLACK    + "    India(29) 5500" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTWHITE_EX + Fore.BLACK   + "            Chance" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTGREEN_EX + Fore.BLACK   + "SaudiArab(31) 5500" + Fore.RESET + Back.RESET),
+                      (Back.LIGHTCYAN_EX + Fore.BLACK    + "Petroleum(32) 5500" + Fore.RESET + Back.RESET),
+                      (Back.LIGHTBLUE_EX + Fore.BLACK    + "    China(33) 4500" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTCYAN_EX + Fore.BLACK    + " Railways(34) 9500" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTGREEN_EX + Fore.BLACK   + " Malaysia(35) 1500" + Fore.RESET + Back.RESET), 
+                      (Back.LIGHTBLUE_EX + Fore.BLACK    + "Singapore(36) 3000" + Fore.RESET + Back.RESET))
+                      
 assets_board_locations = { 2: "",  3: "",  4: "",  6: "",
                            7: "",  8: "",  9: "", 11: "",
                           12: "", 13: "", 15: "", 16: "",
@@ -185,7 +210,8 @@ class Smartcontroller(object):
             else:
                 result = self.Banker.sell_asset_to_player(turnplayer.id, turnplayer.board_pos)
                 if result == 0:
-                    assets_board_locations[turnplayer.board_pos] = "|P%d|" % turnplayer.id
+                    color_code = {1: Fore.LIGHTRED_EX, 2: Fore.LIGHTGREEN, 3: Fore.LIGHTBLUE, 4: Fore.LIGHTYELLOW}
+                    assets_board_locations[turnplayer.board_pos] = color_code[turnplayer.id] + "|P%d|" % turnplayer.id + Fore.RESET
                 elif result == -1:
                     self.remove_player_from_game(turnplayer.id)
                 else:
@@ -261,7 +287,7 @@ class Smartcontroller(object):
         else: print output
                         
     def display_board(self, term_only):
-        output = ' ' * 70 + '-' * 28 + '\n' + ' ' * 73 +  Fore.LIGHTRED_EX + 'INTERNATIONAL BUSINESS' + Fore.RESET +'\n' + ' ' * 70 + '-' * 28 + '\n'      
+        output = ' ' * 70 + '-' * 28 + '\n' + ' ' * 73 +  Back.LIGHTRED_EX + Fore.BLACK  + 'INTERNATIONAL BUSINESS' + Fore.RESET + Back.RESET +'\n' + ' ' * 70 + '-' * 28 + '\n'      
         i = 0
         while i < len(board_display_data):
             pp = self.check_all_player_presence_on_a_position(i+1)
