@@ -237,7 +237,7 @@ class Banksmart(object):
             return 0
         else:
             turnid = 0            
-            bidmenu = MenuBox("Bid Menu")
+            bidmenu = MenuBox("Bid Menu", self.logPath)
             price_dict = {1: 1, 2: 10, 3: 50, 4: 100, 5: 200, 6: 500}
             while len(bidders_acc_ids) > 1:
                 self.logObj.printer("Player-%d" % bidders_acc_ids[turnid])

@@ -215,8 +215,10 @@ class Smartcontroller(object):
                     assets_board_locations[turnplayer.board_pos] = Smartcontroller.color_code[turnplayer.id] + "|P%d|" % turnplayer.id + color_coded[8]
                 elif result == -1:
                     self.remove_player_from_game(turnplayer.id)
-                else:
+                elif result == 2:
                     self.Banker.auction_of_asset(turnplayer.board_pos)
+                else:
+                    pass
             if self.state:
                 optionPlayerRecv = 0
                 while optionPlayerRecv not in (1, 6, 7) :
