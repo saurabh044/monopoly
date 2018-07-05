@@ -225,6 +225,7 @@ class Banksmart(object):
             self.logObj("No eligible player is there for auction.")
             return -1
         elif len(bidders_acc_ids) == 1:
+            self.logObj.printer("Only Player-%d is eligible for this auction." % bidders_acc_ids[0])
             player_buyconsent = self.PlayerBuyMenu.runMenu() 
             if player_buyconsent == 1:
                 self.accounts[bidders_acc_ids[0]].withdraw(asset.buy_price, "Asset %s purchase from Bank" % asset.name)
@@ -236,11 +237,14 @@ class Banksmart(object):
                 self.logObj.printer(color_coded[13] + "Player-%d not interested in purchase." % player_id + color_coded[8])
             return 0
         else:
-            turnid = 0            
+            turnid = 0     
+                   
             bidmenu = MenuBox("Bid Menu", self.logPath)
             price_dict = {1: 1, 2: 10, 3: 50, 4: 100, 5: 200, 6: 500}
             while len(bidders_acc_ids) > 1:
-                self.logObj.printer("Player-%d" % bidders_acc_ids[turnid])
+                bidmenu.cleanOptions()
+                self.logObj.printer("\nPlayer-%d" % bidders_acc_ids[turnid])
+                self.logObj.printer("Current Bid Price = %d" % bid_price)
                 for i in range(1, 7):
                     if self.accounts[bidders_acc_ids[turnid]].balance >= bid_price + price_dict[i]:
                         bidmenu.addOption('+' + str(price_dict[i]))
@@ -254,11 +258,13 @@ class Banksmart(object):
                     opt = bidmenu.runMenu()
                     if opt != bidmenu.getoptioncount():
                         bid_price += price_dict[opt]
+                        self.logObj.printer("Your Bid Price = %d" % bid_price)
                         turnid = (turnid + 1) % len(bidders_acc_ids)
                     else:
                         self.logObj.printer("Player-%d is out of auction process now." % bidders_acc_ids[turnid])
                         del bidders_acc_ids[turnid] 
                         turnid %= len(bidders_acc_ids) 
+            self.logObj.printer("Player-%d is purchasing %s" % (bidders_acc_ids[0], asset.name) )
             self.accounts[bidders_acc_ids[0]].withdraw(bid_price, "Asset %s purchase from Bank" % asset.name)
             self.accounts[0].deposit(bid_price, "Asset %s sale to Player-%d" % (asset.name, bidders_acc_ids[0]))
             asset.owner = bidders_acc_ids[0]
