@@ -193,11 +193,12 @@ class Banksmart(object):
                         self.logObj.printer(color_coded[11]+ "Purchase done" + color_coded[8])    
                         return 0 
                     else:
-                        self.logObj.printer(color_coded[13] + "Player-%d not interested in purchase." % player_id + color_coded[8] )
+                        self.logObj.printer(color_coded[13] + "Player-%d not interested in purchase." % player_id + color_coded[8])
                 else:
                     self.logObj.printer(color_coded[10] + "Player-%d has not sufficient balance to buy." % player_id + color_coded[8])
             else:
                 self.logObj.printer(color_coded[10] + 'You have already mortgaged %d assets to bank.\nYou can not buy any property till you have any mortgaged one.\n' % player_mort_assets + color_coded[8])
+            return 2
         elif asset.owner == player_id:
             self.logObj.printer(color_coded[11] + "You reached on your own property" + color_coded[8])
         elif asset.owner < 10:
@@ -213,8 +214,56 @@ class Banksmart(object):
             return 1 
         else:
             self.logObj.printer(color_coded[11] + "You reached on a mortgaged property. No need to pay any rent." + color_coded[8])            
-        return 1             
-        
+        return 1  
+    
+    def auction_of_asset(self, asset_id):
+        asset = self.get_asset_by_assetid(asset_id)
+        min_acceptable = int(asset.buy_price * 0.6)
+        bid_price = min_acceptable
+        bidders_acc_ids = [i.id for i in self.accounts if i.id != 0 if i.balance >= min_acceptable and self.get_players_mort_assets(i.id) == 0]
+        if len(bidders_acc_ids) == 0:
+            self.logObj("No eligible player is there for auction.")
+            return -1
+        elif len(bidders_acc_ids) == 1:
+            player_buyconsent = self.PlayerBuyMenu.runMenu() 
+            if player_buyconsent == 1:
+                self.accounts[bidders_acc_ids[0]].withdraw(asset.buy_price, "Asset %s purchase from Bank" % asset.name)
+                self.accounts[0].deposit(asset.buy_price, "Asset %s sale to Player-%d" % (asset.name, bidders_acc_ids[0]))
+                asset.owner = bidders_acc_ids[0]
+                self.prop_vacancy_set(bidders_acc_ids[0], asset)
+                self.logObj.printer(color_coded[11]+ "Purchase done" + color_coded[8])    
+            else:
+                self.logObj.printer(color_coded[13] + "Player-%d not interested in purchase." % player_id + color_coded[8])
+            return 0
+        else:
+            turnid = 0            
+            bidmenu = MenuBox("Bid Menu")
+            price_dict = {1: 1, 2: 10, 3: 50, 4: 100, 5: 200, 6: 500}
+            while len(bidders_acc_ids) > 1:
+                self.logObj.printer("Player-%d" % bidders_acc_ids[turnid])
+                for i in range(1, 7):
+                    if self.accounts[bidders_acc_ids[turnid]].balance >= bid_price + price_dict[i]:
+                        bidmenu.addOption('+' + str(price_dict[i]))
+                    else:
+                        break
+                if bidmenu.getoptioncount() == 1:
+                    self.logObj.printer("Player-%d is out of auction process now." % bidders_acc_ids[turnid])
+                    del bidders_acc_ids[turnid] 
+                    turnid %= len(bidders_acc_ids) 
+                else:
+                    opt = bidmenu.runMenu()
+                    if opt != bidmenu.getoptioncount():
+                        bid_price += price_dict[opt]
+                        turnid = (turnid + 1) % len(bidders_acc_ids)
+                    else:
+                        self.logObj.printer("Player-%d is out of auction process now." % bidders_acc_ids[turnid])
+                        del bidders_acc_ids[turnid] 
+                        turnid %= len(bidders_acc_ids) 
+            self.accounts[bidders_acc_ids[0]].withdraw(bid_price, "Asset %s purchase from Bank" % asset.name)
+            self.accounts[0].deposit(bid_price, "Asset %s sale to Player-%d" % (asset.name, bidders_acc_ids[0]))
+            asset.owner = bidders_acc_ids[0]
+            self.prop_vacancy_set(bidders_acc_ids[0], asset)
+            self.logObj.printer(color_coded[11]+ "Purchase done" + color_coded[8])    
     
     def sell_building_to_player(self, player_id, asset_id):
         asset = self.get_asset_by_assetid(asset_id)

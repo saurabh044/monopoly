@@ -216,7 +216,7 @@ class Smartcontroller(object):
                 elif result == -1:
                     self.remove_player_from_game(turnplayer.id)
                 else:
-                    pass
+                    self.Banker.auction_of_asset(turnplayer.board_pos)
             if self.state:
                 optionPlayerRecv = 0
                 while optionPlayerRecv not in (1, 6, 7) :

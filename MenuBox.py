@@ -48,6 +48,9 @@ class MenuBox(object):
 
     def addOptions(self, optionslist):
         self.optionList += optionslist
+    
+    def cleanOptions(self):
+        self.optionList = []
 
     def dispMenu(self):
         counter = 1
