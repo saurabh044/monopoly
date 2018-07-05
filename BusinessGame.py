@@ -17,7 +17,7 @@ try:
         dx = DBhandler(dbuser, dbpassword)
     except:
         p.printer(color_coded[10] + "Connection failed to MySQL server. You will not be able to save the ongoing game for later." + color_coded[8])
-    gameretrieve = MenuBox("MONOPOLY GAME", logPath)
+    gameretrieve = MenuBox("INTERNATIONAL BUSINESS GAME", logPath)
     gameStartMenu = MenuBox("Start Game:", logPath)
     gameStartMenu.addOptions(["4 Player ", "3 Player ", "2 Player "])
     if dx is not None:
