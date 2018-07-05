@@ -2,6 +2,8 @@ import re
 import random
 import mysql.connector
 from colorama import Fore, Back, Style, init
+from pygame.examples.testsprite import Static
+from __builtin__ import staticmethod
 color_coded = {1: Back.LIGHTRED_EX, 2: Back.LIGHTGREEN_EX, 3: Back.LIGHTBLUE_EX, 
                4: Back.LIGHTYELLOW_EX, 5: Back.LIGHTMAGENTA_EX, 6: Back.LIGHTWHITE_EX,
                7: Back.RESET, 8: Fore.RESET, 9: Fore.BLACK, 10: Fore.LIGHTRED_EX, 11: Fore.LIGHTGREEN_EX, 
@@ -15,14 +17,14 @@ class Dice(object):
         return out
     
 class Printer(object):
-
+    
     def __init__(self, filename=""):
         self.LogFileName = filename
 
     def printer(self, inp_text):
         print inp_text
         fh = open(self.LogFileName, 'a')
-        fh.write("%s\n" % inp_text)
+        fh.write("%s\n" % Printer.escape_ansi(inp_text))
         fh.close()
 
     def file_only_printer(self, inp_text):
@@ -34,6 +36,11 @@ class Printer(object):
         self.LogFileName = filename
         fh = open(self.LogFileName, mode)
         fh.close()
+
+    @staticmethod
+    def escape_ansi(line):
+        ansi_escape = re.compile(r'(\x9B|\x1B\[)[0-?]*[ -/]*[@-~]')
+        return ansi_escape.sub('', line)
 
 class MenuBox(object):
 
