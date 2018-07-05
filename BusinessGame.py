@@ -1,6 +1,5 @@
 from Smartcontroller import Smartcontroller
 from MenuBox import MenuBox, Printer, DBhandler, color_coded
-from colorama import init, Fore, Back, Style
 import os
 
 

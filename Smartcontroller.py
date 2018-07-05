@@ -1,7 +1,6 @@
 from MenuBox import MenuBox, Printer, Dice, DBhandler, color_coded
 from Banksmart import Banksmart
 from Asset import Country, Utility
-from colorama import init, Fore, Back, Style
 import re
 import os
 import platform
@@ -107,7 +106,6 @@ class Smartplayer(object):
             
 class Smartcontroller(object):
 
-    color_code = {1: Fore.LIGHTRED_EX, 2: Fore.LIGHTGREEN_EX, 3: Fore.LIGHTBLUE_EX, 4: Fore.LIGHTYELLOW_EX}
     crossover_amount = 100
     
     def __init__(self, player_count, log_path, user=None, password=None):       
@@ -212,7 +210,7 @@ class Smartcontroller(object):
             else:
                 result = self.Banker.sell_asset_to_player(turnplayer.id, turnplayer.board_pos)
                 if result == 0:
-                    assets_board_locations[turnplayer.board_pos] = Smartcontroller.color_code[turnplayer.id] + "|P%d|" % turnplayer.id + color_coded[8]
+                    assets_board_locations[turnplayer.board_pos] = color_coded[turnplayer.id+9] + "|P%d|" % turnplayer.id + color_coded[8]
                 elif result == -1:
                     self.remove_player_from_game(turnplayer.id)
                 elif result == 2:
@@ -304,7 +302,7 @@ class Smartcontroller(object):
             loc = ""
             for j in range(len(pp)):
                 if pp[j]:
-                    loc = loc + Smartcontroller.color_code[pp[j].id] + "<P" + str(pp[j].id) + ">" + color_coded[8]
+                    loc = loc + color_coded[pp[j].id+9] + "<P" + str(pp[j].id) + ">" + color_coded[8]
             loc = loc + "    " * (self.player_count - len(pp))
             self.BoardData[i+1] = [board_display_data[i], owner_tag, loc]
             i += 1
@@ -575,7 +573,7 @@ class Smartcontroller(object):
     def set_owner_in_asset(self, board_pos, plid):
         if plid > 0:
             if plid > 10: plid -= 10
-            assets_board_locations[board_pos] =  Smartcontroller.color_code[plid] + "|P%d|" % plid + color_coded[8]
+            assets_board_locations[board_pos] =  color_coded[plid+9] + "|P%d|" % plid + color_coded[8]
 
     def setprevgame(self):
         try:
