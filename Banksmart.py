@@ -232,7 +232,8 @@ class Banksmart(object):
                 self.accounts[0].deposit(min_acceptable, "Asset %s sale to Player-%d" % (asset.name, bidders_acc_ids[0]))
                 asset.owner = bidders_acc_ids[0]
                 self.prop_vacancy_set(bidders_acc_ids[0], asset)
-                self.logObj.printer(color_coded[11]+ "Purchase done" + color_coded[8])    
+                self.logObj.printer(color_coded[11]+ "Purchase done" + color_coded[8])   
+                return bidders_acc_ids[0]
             else:
                 self.logObj.printer(color_coded[13] + "Player-%d not interested in purchase." % player_id + color_coded[8])
             return 0
@@ -269,6 +270,7 @@ class Banksmart(object):
             asset.owner = bidders_acc_ids[0]
             self.prop_vacancy_set(bidders_acc_ids[0], asset)
             self.logObj.printer(color_coded[11]+ "Purchase done" + color_coded[8])    
+            return bidders_acc_ids[0]
     
     def sell_building_to_player(self, player_id, asset_id):
         asset = self.get_asset_by_assetid(asset_id)
