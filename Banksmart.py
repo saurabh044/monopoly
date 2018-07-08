@@ -222,7 +222,7 @@ class Banksmart(object):
         bid_price = min_acceptable
         bidders_acc_ids = [i.id for i in self.accounts if i.id != 0 if i.balance >= min_acceptable and self.get_players_mort_assets(i.id) == 0]
         if len(bidders_acc_ids) == 0:
-            self.logObj("No eligible player is there for auction.")
+            self.logObj.printer("No eligible player is there for auction.")
             return -1
         elif len(bidders_acc_ids) == 1:
             self.logObj.printer("Only Player-%d is eligible for this auction." % bidders_acc_ids[0])
