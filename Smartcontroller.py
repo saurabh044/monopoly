@@ -38,7 +38,7 @@ utility_list = {"Waterways": (4, 9500, 2000, 1400, 2200, 1),
                 "Railways": (34, 9500, 5000, 1500, 2500, 2)
                 }
 board_display_data = ((color_coded[6] + color_coded[9] + "1-Start           " + color_coded[8] + color_coded[7]), 
-                      (color_coded[1] + color_coded[9] + "2-England    $2500" + color_coded[8] + color_coded[7]), 
+                      (color_coded[1] + color_coded[9] + "2-England    $7000" + color_coded[8] + color_coded[7]), 
                       (color_coded[2] + color_coded[9] + "3-Iraq       $5000" + color_coded[8] + color_coded[7]), 
                       (color_coded[5] + color_coded[9] + "4-Waterways  $9500" + color_coded[8] + color_coded[7]), 
                       (color_coded[6] + color_coded[9] + "5-UNO             " + color_coded[8] + color_coded[7]),
