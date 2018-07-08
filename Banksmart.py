@@ -228,8 +228,8 @@ class Banksmart(object):
             self.logObj.printer("Only Player-%d is eligible for this auction." % bidders_acc_ids[0])
             player_buyconsent = self.PlayerBuyMenu.runMenu() 
             if player_buyconsent == 1:
-                self.accounts[bidders_acc_ids[0]].withdraw(asset.buy_price, "Asset %s purchase from Bank" % asset.name)
-                self.accounts[0].deposit(asset.buy_price, "Asset %s sale to Player-%d" % (asset.name, bidders_acc_ids[0]))
+                self.accounts[bidders_acc_ids[0]].withdraw(min_acceptable, "Asset %s purchase from Bank" % asset.name)
+                self.accounts[0].deposit(min_acceptable, "Asset %s sale to Player-%d" % (asset.name, bidders_acc_ids[0]))
                 asset.owner = bidders_acc_ids[0]
                 self.prop_vacancy_set(bidders_acc_ids[0], asset)
                 self.logObj.printer(color_coded[11]+ "Purchase done" + color_coded[8])    
